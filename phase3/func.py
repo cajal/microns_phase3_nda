@@ -2,6 +2,7 @@ from . import utils
 from . import nda
 
 import numpy as np
+import torch
 
 import coregister.solve as cs
 from coregister.transform.transform import Transform
@@ -17,7 +18,7 @@ def get_grid(field_key, desired_res=1):
     field_dims = (nda.Field & field_key).fetch1('um_height', 'um_width')
 
     # Create grid at desired resolution
-    grid = create_grid(field_dims, desired_res=desired_res)  # h x w x 2
+    grid = utils.create_grid(field_dims, desired_res=desired_res)  # h x w x 2
     grid = torch.as_tensor(grid, dtype=torch.float32)
 
     # Apply required transform
@@ -30,7 +31,7 @@ def get_grid(field_key, desired_res=1):
     linear = torch.tensor([[a11, a12], [a21, a22], [a31, a32]])
     translation = torch.tensor([delta_x, delta_y, delta_z])
 
-    return affine_product(grid, linear, translation).numpy()
+    return utils.affine_product(grid, linear, translation).numpy()
 
 
 def fetch_coreg(transform_id=None, transform_version=None, transform_direction=None, transform_type=None, as_dict=True):
