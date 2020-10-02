@@ -19,3 +19,15 @@ In a jupyter notebook:
 ```python
 from phase3 import nda, func, utils
 ```
+
+Import datajoint. Configuration instructions: https://docs.datajoint.io/python/setup/01-Install-and-Connect.html
+
+```python
+import datajoint as dj
+```
+
+View schema:
+```python
+dj.ERD(nda)
+```
+
