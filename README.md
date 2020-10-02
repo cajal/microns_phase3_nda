@@ -41,7 +41,9 @@ For tutorial see: [notebook example](notebooks/microns_phase3_nda_examples.ipynb
 
 # nda table descriptions
 
-nda.Scan: Information on completed scans. Cajal Pipeline source: [ScanInfo](https://github.com/cajal/pipeline/blob/6a8342bf3edb07f5653c61024742258295cd8014/python/pipeline/meso.py#L29)
-nda.Field: Individual fields of scans. Cajal Pipeline source: [ScanInfo.Field](https://github.com/cajal/pipeline/blob/6a8342bf3edb07f5653c61024742258295cd8014/python/pipeline/meso.py#L54)
-nda.Stack: Stack information. Cajal Pipeline source: [CorrectedStack](https://github.com/cajal/pipeline/blob/6a8342bf3edb07f5653c61024742258295cd8014/python/pipeline/stack.py#L733)
+**nda.Scan:** Information on completed scans. Cajal Pipeline source: [ScanInfo](https://github.com/cajal/pipeline/blob/6a8342bf3edb07f5653c61024742258295cd8014/python/pipeline/meso.py#L29)
+
+**nda.Field:** Individual fields of scans. Cajal Pipeline source: [ScanInfo.Field](https://github.com/cajal/pipeline/blob/6a8342bf3edb07f5653c61024742258295cd8014/python/pipeline/meso.py#L54)
+
+**nda.Stack:** Stack information. Cajal Pipeline source: [CorrectedStack](https://github.com/cajal/pipeline/blob/6a8342bf3edb07f5653c61024742258295cd8014/python/pipeline/stack.py#L733)
 
