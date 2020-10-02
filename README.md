@@ -14,6 +14,8 @@ Install this package:
 pip3 install git+https://github.com/cajal/microns_phase3_nda.git
 ```
 
+# Import Instructions
+
 In a jupyter notebook:
 
 ```python
@@ -26,9 +28,14 @@ Import datajoint. Configuration instructions: https://docs.datajoint.io/python/s
 import datajoint as dj
 ```
 
+# Using the schema
+
 View schema:
 ```python
 dj.ERD(nda)
 ```
 
 ![nda](images/nda_erd.png)
+
+See [notebook example](notebooks/microns_phase3_nda_examples.ipynb)
+
