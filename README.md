@@ -31,3 +31,4 @@ View schema:
 dj.ERD(nda)
 ```
 
+[nda](images/nda_erd.png)
