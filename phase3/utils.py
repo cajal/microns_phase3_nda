@@ -48,29 +48,6 @@ def affine_product(X, A, b):
     return torch.einsum('ij,klj->kli', (A, X)) + b
 
 
-def get_grid(field_key, desired_res=1):
-    """ Get registered grid for this registration. """
-
-    # Get field
-    field_dims = (nda.Field & field_key).fetch1('um_height', 'um_width')
-
-    # Create grid at desired resolution
-    grid = create_grid(field_dims, desired_res=desired_res)  # h x w x 2
-    grid = torch.as_tensor(grid, dtype=torch.float32)
-
-    # Apply required transform
-    params = (nda.Registration & field_key).fetch1(
-        'a11', 'a21', 'a31', 
-        'a12', 'a22', 'a32', 
-        'reg_x', 'reg_y', 'reg_z'
-        )
-    a11, a21, a31, a12, a22, a32, delta_x, delta_y, delta_z = params
-    linear = torch.tensor([[a11, a12], [a21, a22], [a31, a32]])
-    translation = torch.tensor([delta_x, delta_y, delta_z])
-
-    return affine_product(grid, linear, translation).numpy()
-
-
 def sample_grid(volume, grid):
     """ 
     Sample grid in volume.

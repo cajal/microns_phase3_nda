@@ -9,6 +9,30 @@ from coregister.utils import em_nm_to_voxels
 
 phase3_ng_link = "https://akhilesh-graphene-sharded-dot-neuromancer-seung-import.appspot.com/#!%7B%22layers%22:%5B%7B%22source%22:%22precomputed://https://seungdata.princeton.edu/minnie65-phase3-em/aligned/v1%22%2C%22type%22:%22image%22%2C%22blend%22:%22default%22%2C%22shader%22:%22#uicontrol%20float%20black%20slider%28min=0%2C%20max=1%2C%20default=0.33%29%5Cn#uicontrol%20float%20white%20slider%28min=0%2C%20max=1%2C%20default=0.66%29%5Cnfloat%20rescale%28float%20value%29%20%7B%5Cn%20%20return%20%28value%20-%20black%29%20/%20%28white%20-%20black%29%3B%5Cn%7D%5Cnvoid%20main%28%29%20%7B%5Cn%20%20float%20val%20=%20toNormalized%28getDataValue%28%29%29%3B%5Cn%20%20if%20%28val%20%3C%20black%29%20%7B%5Cn%20%20%20%20emitRGB%28vec3%280%2C0%2C0%29%29%3B%5Cn%20%20%7D%20else%20if%20%28val%20%3E%20white%29%20%7B%5Cn%20%20%20%20emitRGB%28vec3%281.0%2C%201.0%2C%201.0%29%29%3B%5Cn%20%20%7D%20else%20%7B%5Cn%20%20%20%20emitGrayscale%28rescale%28val%29%29%3B%5Cn%20%20%7D%5Cn%7D%22%2C%22shaderControls%22:%7B%7D%2C%22name%22:%22em-phase3%22%7D%2C%7B%22source%22:%22graphene://https://minniev1.microns-daf.com/segmentation/table/minnie3_v1%22%2C%22type%22:%22segmentation_with_graph%22%2C%22skeletonRendering%22:%7B%22mode2d%22:%22lines_and_points%22%2C%22mode3d%22:%22lines%22%7D%2C%22graphOperationMarker%22:%5B%7B%22annotations%22:%5B%5D%2C%22tags%22:%5B%5D%7D%2C%7B%22annotations%22:%5B%5D%2C%22tags%22:%5B%5D%7D%5D%2C%22pathFinder%22:%7B%22color%22:%22#ffff00%22%2C%22pathObject%22:%7B%22annotationPath%22:%7B%22annotations%22:%5B%5D%2C%22tags%22:%5B%5D%7D%2C%22hasPath%22:false%7D%7D%2C%22name%22:%22seg-phase3%22%2C%22visible%22:false%7D%2C%7B%22source%22:%22precomputed://https://s3-hpcrc.rc.princeton.edu/minnie65-phase3-ws/nuclei/v0/seg%22%2C%22type%22:%22segmentation%22%2C%22skeletonRendering%22:%7B%22mode2d%22:%22lines_and_points%22%2C%22mode3d%22:%22lines%22%7D%2C%22name%22:%22nuclear-seg-phase3%22%2C%22visible%22:false%7D%5D%2C%22navigation%22:%7B%22pose%22:%7B%22position%22:%7B%22voxelSize%22:%5B4%2C4%2C40%5D%2C%22voxelCoordinates%22:%5B227465.734375%2C187007.984375%2C19551.4921875%5D%7D%2C%22orientation%22:%5B0%2C-0.7071067690849304%2C0%2C0.7071067690849304%5D%7D%2C%22zoomFactor%22:248.06867890125633%7D%2C%22perspectiveOrientation%22:%5B-0.0012847303878515959%2C0.9988105297088623%2C0.040208619087934494%2C0.02755257673561573%5D%2C%22perspectiveZoom%22:35418.8697184842%2C%22showSlices%22:false%2C%22gpuMemoryLimit%22:2000000000%2C%22concurrentDownloads%22:128%2C%22jsonStateServer%22:%22https://globalv1.daf-apis.com/nglstate/api/v1/post%22%2C%22layout%22:%223d%22%7D"
 
+
+def get_grid(field_key, desired_res=1):
+    """ Get registered grid for this registration. """
+
+    # Get field
+    field_dims = (nda.Field & field_key).fetch1('um_height', 'um_width')
+
+    # Create grid at desired resolution
+    grid = create_grid(field_dims, desired_res=desired_res)  # h x w x 2
+    grid = torch.as_tensor(grid, dtype=torch.float32)
+
+    # Apply required transform
+    params = (nda.Registration & field_key).fetch1(
+        'a11', 'a21', 'a31', 
+        'a12', 'a22', 'a32', 
+        'reg_x', 'reg_y', 'reg_z'
+        )
+    a11, a21, a31, a12, a22, a32, delta_x, delta_y, delta_z = params
+    linear = torch.tensor([[a11, a12], [a21, a22], [a31, a32]])
+    translation = torch.tensor([delta_x, delta_y, delta_z])
+
+    return affine_product(grid, linear, translation).numpy()
+
+
 def fetch_coreg(transform_id=None, transform_version=None, transform_direction=None, transform_type=None, as_dict=True):
     if transform_version is not None:
         assert np.logical_or(transform_version=='phase2', transform_version=='phase3'), "transform_version must be 'phase2' or 'phase3'"
@@ -106,7 +130,7 @@ def coreg_transform(coords, transform_id=None, transform_version=None, transform
 def field_to_EM_grid(field_key, transform_id=None, transform_version=None, transform_direction="2PEM", transform_type=None, transform_obj=None):
     assert transform_direction=='2PEM', "transform_direction must be '2PEM'"
 
-    grid = utils.get_grid(field_key, desired_res=1)
+    grid = get_grid(field_key, desired_res=1)
     # convert grid from motor coordinates to numpy coordinates
     center_x, center_y, center_z = nda.Stack.fetch1('x', 'y', 'z')
     length_x, length_y, length_z = nda.Stack.fetch1('um_width', 'um_height', 'um_depth')
@@ -147,6 +171,6 @@ def get_stack_field_image(field_key, stack, desired_res=1):
     """
     
     stack_x, stack_y, stack_z = nda.Stack.fetch1('x', 'y', 'z')
-    grid = utils.get_grid(field_key, desired_res=1)
+    grid = get_grid(field_key, desired_res=1)
     grid = grid - np.array([stack_x, stack_y, stack_z])
     return utils.sample_grid(stack, grid).numpy()
