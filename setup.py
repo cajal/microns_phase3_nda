@@ -12,5 +12,5 @@ setup(
     author='Stelios Papadopoulos',
     author_email='spapadop@bcm.edu',
     packages=find_packages(exclude=[]),
-    install_requires=['numpy', 'tqdm', 'scipy', 'pandas', 'datajoint', 'pykdtree', 'ipyvolume', 'matplotlib', 'decorator', 'torch', 'cloud-volume']
+    install_requires=['numpy', 'tqdm', 'scipy', 'pandas', 'datajoint', 'pykdtree', 'ipyvolume', 'matplotlib', 'decorator', 'torch']
 )
