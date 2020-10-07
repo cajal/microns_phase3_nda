@@ -16,16 +16,16 @@ pip3 install git+https://github.com/cajal/microns_phase3_nda.git
 
 ## Import Instructions
 
-In a jupyter notebook:
-
-```python
-from phase3 import nda, func, utils
-```
-
 Import datajoint. Configuration instructions: https://docs.datajoint.io/python/setup/01-Install-and-Connect.html
 
 ```python
 import datajoint as dj
+```
+
+In a jupyter notebook:
+
+```python
+from phase3 import nda, func, utils
 ```
 
 ## Using the schema
