@@ -2,6 +2,8 @@
 nda schema for MICrONS phase3
 
 ## Installation Instructions
+This package requires PyTorch. Windows users may need to install from the PyTorch website: [PyTorch installation](https://pytorch.org/get-started/locally/)
+
 This package requires the em_coregistration package from the Allen Institute:
 
 ```bash
