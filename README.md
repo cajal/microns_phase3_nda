@@ -2,6 +2,8 @@
 nda schema for MICrONS phase3
 
 ## Installation Instructions
+This package requires PyTorch. Windows users may need to install from the PyTorch website: [PyTorch installation](https://pytorch.org/get-started/locally/)
+
 This package requires the em_coregistration package from the Allen Institute:
 
 ```bash
@@ -16,16 +18,16 @@ pip3 install git+https://github.com/cajal/microns_phase3_nda.git
 
 ## Import Instructions
 
-In a jupyter notebook:
-
-```python
-from phase3 import nda, func, utils
-```
-
 Import datajoint. Configuration instructions: https://docs.datajoint.io/python/setup/01-Install-and-Connect.html
 
 ```python
 import datajoint as dj
+```
+
+In a jupyter notebook:
+
+```python
+from phase3 import nda, func, utils
 ```
 
 ## Using the schema
@@ -65,9 +67,9 @@ For tutorial see: [notebook example](notebooks/microns_phase3_nda_examples.ipynb
 
 **nda.ScanUnit:** Unit_id assignment that is unique across the entire scan. Includes info about each unit. Cajal Pipeline: [meso.ScanSet.Unit / meso.ScanSet.UnitInfo](https://github.com/cajal/pipeline/blob/921a920478c73687dd78b863fcd05e12bbf1e197/python/pipeline/meso.py#L1341)
 
-**nda.Activity** Deconvolved spike trace from the fluorescence trace. Cajal Pipeline: [meso.Activity.Trace](https://github.com/cajal/pipeline/blob/921a920478c73687dd78b863fcd05e12bbf1e197/python/pipeline/meso.py#L1501)
+**nda.Activity:** Deconvolved spike trace from the fluorescence trace. Cajal Pipeline: [meso.Activity.Trace](https://github.com/cajal/pipeline/blob/921a920478c73687dd78b863fcd05e12bbf1e197/python/pipeline/meso.py#L1501)
 
-**nda.StackUnit** Unit coordinates in stack reference frame after field registration. `np_x, np_y, np_z` should be used for transformation to EM space using Coregistration. [meso.StackCoordinates.UnitInfo](https://github.com/cajal/pipeline/blob/921a920478c73687dd78b863fcd05e12bbf1e197/python/pipeline/meso.py#L1672)
+**nda.StackUnit:** Unit coordinates in stack reference frame after field registration. `np_x, np_y, np_z` should be used for transformation to EM space using Coregistration. [meso.StackCoordinates.UnitInfo](https://github.com/cajal/pipeline/blob/921a920478c73687dd78b863fcd05e12bbf1e197/python/pipeline/meso.py#L1672)
 
 For more documentation see: [Cajal Pipeline Documentation](https://cajal.github.io/atlab-docs.github.io/pipeline.html)
 

@@ -28,7 +28,7 @@ def create_grid(um_sizes, desired_res=1):
 
     # Create grid
     out_sizes = [int(round(um_s / res)) for um_s, res in zip(um_sizes, desired_res)]
-    um_grids = [np.linspace(-(s - 1) * res / 2, (s - 1) * res / 2, s, dtype=np.float32)
+    um_grids = [np.linspace(-(s - 1) * res / 2, (s - 1) * res / 2, s, dtype=np.double)
                 for s, res in zip(out_sizes, desired_res)] # *
     full_grid = np.stack(np.meshgrid(*um_grids, indexing='ij')[::-1], axis=-1)
     # * this preserves the desired resolution by slightly changing the size of the FOV to
@@ -60,15 +60,15 @@ def sample_grid(volume, grid):
     :return: A d1 x d2 tensor. The grid sampled in the stack.
     """
     # Make sure input is tensor
-    volume = torch.as_tensor(volume, dtype=torch.float32)
-    grid = torch.as_tensor(grid, dtype=torch.float32)
+    volume = torch.as_tensor(volume, dtype=torch.double)
+    grid = torch.as_tensor(grid, dtype=torch.double)
 
     # Rescale grid so it ranges from -1 to 1 (as expected by F.grid_sample)
     norm_factor = torch.as_tensor([s / 2 - 0.5 for s in volume.shape[::-1]])
     norm_grid = grid / norm_factor
 
     # Resample
-    resampled = F.grid_sample(volume[None, None, ...], norm_grid[None, None, ...], padding_mode='zeros')
+    resampled = F.grid_sample(volume[None, None, ...], norm_grid[None, None, ...], padding_mode='zeros', align_corners=True)
     resampled = resampled.squeeze() # drop batch and channel dimension
 
     return resampled
@@ -81,6 +81,7 @@ def format_coords(coords_xyz, return_dim=1):
     assert np.logical_or(return_dim==1, return_dim==2), '"ndim" must be 1 or 2'
     assert np.logical_or(coords_xyz.ndim == 1, coords_xyz.ndim == 2), 'Coordinate(s) must be 1D or 2D'
     assert coords_xyz.shape[-1] == 3, 'Coordinate(s) must have exactly x, y, and z'
+    assert np.logical_or(coords_xyz.dtype==np.int, coords_xyz.dtype==np.float), 'Datatype must be int or float'
     
     coords_xyz = coords_xyz if coords_xyz.ndim == return_dim else np.expand_dims(coords_xyz, 0)
         
@@ -147,13 +148,13 @@ def resize(original, um_sizes, desired_res, mode='bilinear'):
     # Re-express as a torch grid [-1, 1]
     um_per_px = np.array([um / px for um, px in zip(um_sizes, original.shape)])
     torch_ones = np.array(um_sizes) / 2 - um_per_px / 2  # sample position of last pixel in original
-    grid = grid / torch_ones[::-1].astype(np.float32)
+    grid = grid / torch_ones[::-1].astype(np.double)
 
     # Resample
     input_tensor = torch.from_numpy(original.reshape(1, 1, *original.shape).astype(
-        np.float32))
+        np.double))
     grid_tensor = torch.from_numpy(grid.reshape(1, *grid.shape))
-    resized_tensor = F.grid_sample(input_tensor, grid_tensor, padding_mode='border', mode=mode)
+    resized_tensor = F.grid_sample(input_tensor, grid_tensor, padding_mode='border', mode=mode, align_corners=True)
     resized = resized_tensor.numpy().squeeze()
 
     return resized

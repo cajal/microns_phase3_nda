@@ -19,7 +19,7 @@ def get_grid(field_key, desired_res=1):
 
     # Create grid at desired resolution
     grid = utils.create_grid(field_dims, desired_res=desired_res)  # h x w x 2
-    grid = torch.as_tensor(grid, dtype=torch.float32)
+    grid = torch.as_tensor(grid, dtype=torch.double)
 
     # Apply required transform
     params = (nda.Registration & field_key).fetch1(
