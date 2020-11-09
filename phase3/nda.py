@@ -248,7 +248,7 @@ class Activity(dj.Manual):
     trace                   : longblob
     """
     
-    segmentation_key = {'animal_id': 17797, 'segmentation_method': 6}
+    segmentation_key = {'animal_id': 17797, 'segmentation_method': 6, 'spike_method': 5}
     
     @property
     def key_source(self):
@@ -258,6 +258,29 @@ class Activity(dj.Manual):
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
 
+
+@schema
+class Oracle(dj.Manual):
+    """
+    Class methods not available outside of BCM pipeline environment
+    """
+    definition = """
+    # Leave-one-out correlation for repeated videos in stimulus.
+    -> nda.ScanUnit
+    ---
+    trials               : int                          # number of trials used
+    pearson              : float                        # per unit oracle pearson correlation over all movies
+    """
+    
+    segmentation_key = {'animal_id': 17797, 'segmentation_method': 6, 'spike_method': 5}
+    
+    @property
+    def key_source(self):
+        return tune.MovieOracle.Total & self.segmentation_key & nda.Field
+    
+    @classmethod
+    def fill(cls):
+        cls.insert(cls.key_source, ignore_extra_fields=True)
 
 @schema
 class StackUnit(dj.Manual):
