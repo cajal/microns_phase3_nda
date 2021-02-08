@@ -376,8 +376,8 @@ class Stimulus(dj.Manual):
         trial_idx    :   smallint      # index of trial within stimulus
         ---
         type         :   varchar(16)   # type of stimulus trial
-        start_idx    :   smallint      # start frame of trial
-        end_idx      :   smallint      # end frame of trial
+        start_idx    :   int unsigned      # start frame of trial
+        end_idx      :   int unsigned     # end frame of trial
         condition_hash    : char(20)   # 120-bit hash (The first 20 chars of MD5 in base64)
         """
 
