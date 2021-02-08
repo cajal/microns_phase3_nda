@@ -373,12 +373,12 @@ class Stimulus(dj.Manual):
         definition = """
         # Information for each Trial
         -> master
-        -> trial_idx
+        trial_idx    :   smallint      # index of trial within stimulus
         ---
-        type
-        start_idx
-        end_idx
-        condition_hash
+        type         :   varchar(16)   # type of stimulus trial
+        start_idx    :   smallint      # start frame of trial
+        end_idx      :   smallint      # end frame of trial
+        condition_hash    : char(20)   # 120-bit hash (The first 20 chars of MD5 in base64)
         """
 
 @schema
