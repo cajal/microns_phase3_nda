@@ -367,17 +367,76 @@ class Stimulus(dj.Manual):
     -> Scan
     ---
     movie                : longblob                     # stimulus images synchronized with field 1 frame times (H x W x T matrix)
-    conditions           : longblob                     # vector indicating direction of moving noise, or NaN for other stimuli. Synchronized
     """
     
-    @property
-    def key_source(self):
-        return nda3.Stimulus()
-    
-    @classmethod
-    def fill(cls):
-        cls.insert(cls.key_source, ignore_extra_fields=True)
+    class Trial(dj.Part):
+        definition = """
+        # Information for each Trial
+        -> master
+        trial_idx    :   smallint      # index of trial within stimulus
+        ---
+        type         :   varchar(16)   # type of stimulus trial
+        start_idx    :   int unsigned      # start frame of trial
+        end_idx      :   int unsigned     # end frame of trial
+        condition_hash    : char(20)   # 120-bit hash (The first 20 chars of MD5 in base64)
+        """
 
+@schema
+class Clip(dj.Manual):
+    definition = """
+    # Movie clip condition
+    condition_hash       : char(20)                     # 120-bit hash (The first 20 chars of MD5 in base64)
+    ---
+    movie_name           : char(8)                      # short movie title
+    clip_number          : int                          # clip index
+    skip_time=0.000      : decimal(7,3)                 # (s) skip to this time in the clip
+    cut_after            : decimal(7,3)                 # (s) cut clip if it is longer than this duration
+    """
+
+@schema
+class Monet2(dj.Manual):
+    definition = """
+    # Improved Monet stimulus: pink noise with periods of coherent motion
+    condition_hash       : char(20)                     # 120-bit hash (The first 20 chars of MD5 in base64)
+    ---
+    fps                  : decimal(6,3)                 # display refresh rate
+    duration             : decimal(6,3)                 # (s) trial duration
+    rng_seed             : double                       # random number generator seed
+    blue_green_saturation=0.000 : decimal(4,3)          # 0 = grayscale, 1=blue/green
+    pattern_width        : smallint                     # pixel size of the resulting pattern
+    pattern_aspect       : float                        # the aspect ratio of the pattern
+    temp_kernel          : varchar(16)                  # 
+    temp_bandwidth       : decimal(4,2)                 # (Hz) temporal bandwidth of the stimulus
+    ori_coherence        : decimal(4,2)                 # 1=unoriented noise. pi/ori_coherence = bandwidth of orientations.
+    ori_fraction         : float                        # fraction of time coherent orientation is on
+    ori_mix              : float                        # mixin-coefficient of orientation biased noise
+    n_dirs               : smallint                     # number of directions
+    speed                : float                        # (units/s)  where unit is display width
+    directions           : longblob                     # computed directions of motion in degrees
+    onsets               : blob                         # (s) computed
+    movie                : longblob                     # (computed) uint8 movie
+    """
+
+@schema
+class Trippy(dj.Manual):
+    definition = """
+    # randomized curvy dynamic gratings
+    condition_hash       : char(20)                     # 120-bit hash (The first 20 chars of MD5 in base64)
+    ---
+    fps                  : decimal(6,3)                 # monitor rate
+    rng_seed             : double                       # random number generate seed
+    packed_phase_movie   : longblob                     # phase movie before spatial and temporal interpolation
+    tex_ydim             : smallint                     # (pixels) texture dimension
+    tex_xdim             : smallint                     # (pixels) texture dimension
+    duration             : float                        # (s) trial duration
+    xnodes               : tinyint                      # x dimension of low-res phase movie
+    ynodes               : tinyint                      # y dimension of low-res phase movie
+    up_factor            : tinyint                      # spatial upscale factor
+    temp_freq            : float                        # (Hz) temporal frequency if the phase pattern were static
+    temp_kernel_length   : smallint                     # length of Hanning kernel used for temporal filter. Controls the rate of change of the phase pattern.
+    spatial_freq         : float                        # (cy/point) approximate max. The actual frequencies may be higher.
+    movie                : longblob                     # rendered movie
+    """
 
 @schema
 class Coregistration(dj.Manual):

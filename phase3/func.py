@@ -28,8 +28,8 @@ def get_grid(field_key, desired_res=1):
         'reg_x', 'reg_y', 'reg_z'
         )
     a11, a21, a31, a12, a22, a32, delta_x, delta_y, delta_z = params
-    linear = torch.tensor([[a11, a12], [a21, a22], [a31, a32]], dtype=np.double)
-    translation = torch.tensor([delta_x, delta_y, delta_z], dtype=np.double)
+    linear = torch.tensor([[a11, a12], [a21, a22], [a31, a32]], dtype=torch.double)
+    translation = torch.tensor([delta_x, delta_y, delta_z], dtype=torch.double)
 
     return utils.affine_product(grid, linear, translation).numpy()
 
