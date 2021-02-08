@@ -49,7 +49,15 @@ For tutorial see: [notebook example](notebooks/microns_phase3_nda_examples.ipynb
 
 **nda.Treadmill:** Treadmill for each scan. Cajal Pipeline: [treadmill.py](https://github.com/cajal/pipeline/blob/master/python/pipeline/treadmill.py)
 
-**nda.Stimulus:** Not implemented yet.
+**nda.Stimulus:** For each scan, contains the movie aligned to activity traces in `nda.Activity`.
+
+**nda.Stimulus.Trial:** Part table of nda.Stimulus. Contains information for each trial. There are three types of trials, `Clip`, `Monet2`, and `Trippy`. Each unique trial has its own `condition_hash`. To get detailed information for each trial stimulus, join each `condition_hash` according to its corresponding type in one of: `nda.Clip`, `nda.Monet2`, or `nda.Trippy`.
+
+**nda.Clip:** Detailed information for movie clips.
+
+**nda.Monet2:** Detailed information for the Monet2 stimulus.
+
+**nda.Trippy** Detailed information for the Trippy stimulus.
 
 **nda.Field:** Individual fields of scans. Cajal Pipeline: [meso.ScanInfo.Field](https://github.com/cajal/pipeline/blob/6a8342bf3edb07f5653c61024742258295cd8014/python/pipeline/meso.py#L54)
 
