@@ -313,6 +313,30 @@ class StackUnit(dj.Manual):
 
 
 @schema
+class ManualPupil(dj.Manual):
+    definition = """
+    # Pupil traces
+    -> Scan
+    ---
+    pupil_min_r          : longblob                     # vector of pupil minor radii synchronized with field 1 frame times (pixels)
+    pupil_maj_r          : longblob                     # vector of pupil major radii synchronized with field 1 frame times (pixels)
+    pupil_x              : longblob                     # vector of pupil x positions synchronized with field 1 frame times (pixels)
+    pupil_y              : longblob                     # vector of pupil y positions synchronized with field 1 frame times (pixels)
+    """
+
+@schema 
+class AutomaticPupil(dj.Manual):
+    definition = """
+    # Pupil traces
+    -> Scan
+    ---
+    pupil_min_r          : longblob                     # vector of pupil minor radii synchronized with field 1 frame times (pixels)
+    pupil_maj_r          : longblob                     # vector of pupil major radii synchronized with field 1 frame times (pixels)
+    pupil_x              : longblob                     # vector of pupil x positions synchronized with field 1 frame times (pixels)
+    pupil_y              : longblob                     # vector of pupil y positions synchronized with field 1 frame times (pixels)
+    """
+
+@schema
 class Pupil(dj.Manual):
     """
     Class methods not available outside of BCM pipeline environment
@@ -391,6 +415,19 @@ class Clip(dj.Manual):
     clip_number          : int                          # clip index
     skip_time=0.000      : decimal(7,3)                 # (s) skip to this time in the clip
     cut_after            : decimal(7,3)                 # (s) cut clip if it is longer than this duration
+    """
+
+@schema
+class TestClip(dj.Manual):
+    definition = """
+    # Movie clip condition
+    condition_hash       : char(20)                     # 120-bit hash (The first 20 chars of MD5 in base64)
+    ---
+    movie_name           : char(8)                      # short movie title
+    clip_number          : int                          # clip index
+    skip_time=0.000      : decimal(7,3)                 # (s) skip to this time in the clip
+    cut_after            : decimal(7,3)                 # (s) cut clip if it is longer than this duration
+    clip                 : longblob                     # clip as an array (num_frames x h x w)
     """
 
 @schema
