@@ -481,3 +481,30 @@ class SummaryImages(dj.Manual):
     @classmethod
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
+
+
+@schema
+class ScanInclude(dj.Lookup):
+    """
+    Class methods not available outside of BCM pipeline environment
+    """
+    definition = """
+    # Scans suitable for analysis
+    ->Scan
+    """
+
+    contents = np.array([
+        [4, 7],
+        [5, 6],
+        [5, 7],
+        [6, 2],
+        [6, 4],
+        [6, 6],
+        [6, 7],
+        [7, 3],
+        [7, 4],
+        [7, 5],
+        [8, 5],
+        [9, 3],
+        [9, 4],
+        [9, 6]])
