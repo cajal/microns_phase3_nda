@@ -508,3 +508,24 @@ class ScanInclude(dj.Lookup):
         [9, 3],
         [9, 4],
         [9, 6]])
+
+
+@schema
+class MeanIntensity(dj.Manual):
+    """
+    Class methods not available outside of BCM pipeline environment
+    """
+    definition = """
+    # mean intensity of imaging field over time
+    ->Field
+    ---
+    intensities    : longblob                     # mean intensity
+    """
+    
+    @property
+    def key_source(self):
+        return meso.Quality.MeanIntensity & {'animal_id': 17797} & Field
+    
+    @classmethod
+    def fill(cls):
+        cls.insert(cls.key_source, ignore_extra_fields=True)
