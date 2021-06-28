@@ -37,7 +37,7 @@ To view schema ERD:
 dj.ERD(nda)
 ```
 
-![nda](images/nda_erd_2.png)
+![nda](images/nda_erd_3.png)
 
 For tutorial see: [notebook example](notebooks/microns_phase3_nda_examples.ipynb) 
 
@@ -82,6 +82,10 @@ For tutorial see: [notebook example](notebooks/microns_phase3_nda_examples.ipynb
 **nda.StackUnit:** Unit coordinates in stack reference frame after field registration. `np_x, np_y, np_z` should be used for transformation to EM space using Coregistration. [meso.StackCoordinates.UnitInfo](https://github.com/cajal/pipeline/blob/921a920478c73687dd78b863fcd05e12bbf1e197/python/pipeline/meso.py#L1672)
 
 For more documentation see: [Cajal Pipeline Documentation](https://cajal.github.io/atlab-docs.github.io/pipeline.html)
+
+**nda.ScanInclude** Scans determined suitable for analysis. 
+
+**nda.MeanIntensity** # Mean intensity of imaging field over time. Cajal Pipeline: [meso.Quality.MeanIntensity](https://github.com/cajal/pipeline/blob/fa202ee43437a67d55719e8ae9769ee9937581d0/python/pipeline/meso.py#L173)
 
 ## Acknowledgement of Government Sponsorship
 
