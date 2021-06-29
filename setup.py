@@ -6,7 +6,7 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 setup(
-    name='nda',
+    name='phase3',
     version='0.0.1',
     description='Datajoint schemas and related methods for MICrONS phase3',
     author='Stelios Papadopoulos',
