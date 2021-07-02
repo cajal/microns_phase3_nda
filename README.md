@@ -1,7 +1,9 @@
 # microns_phase3_nda
-nda schema for MICrONS phase3
+nda schema for MICrONS phase3. 
 
 ## Installation Instructions
+This package requires access to the functional data. To download the SQL database get started on the microns-nda-access repo [here](https://github.com/cajal/microns-nda-access).
+
 This package requires PyTorch. Windows users may need to install from the PyTorch website: [PyTorch installation](https://pytorch.org/get-started/locally/)
 
 This package requires the em_coregistration package from the Allen Institute:
