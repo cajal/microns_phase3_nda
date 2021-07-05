@@ -182,10 +182,10 @@ def get_stack_field_image(field_key, stack, desired_res=1):
     return utils.sample_grid(stack, grid).numpy()
 
 
-def fit(radians, response):
+def fit(directions, response):
     """Fits a mixture of 2 von Mises separated by pi with equal width
     Args:
-        radians     (array):    1d-array containing directions in radians
+        directions     (array):    1d-array containing directions (radians)
         response    (array):    1d-array of the same length containing responses
     Returns:
         success     (bool):     success of the bounded minimization
@@ -194,7 +194,7 @@ def fit(radians, response):
         kappa       (float):    dispersion of both von Mises distributions
     """
     z = response.sum()
-    psi = 2 * radians
+    psi = 2 * directions
     c = (np.cos(psi) * response).sum() / z
     s = (np.sin(psi) * response).sum() / z
     mu = np.arctan2(s, c) / 2
@@ -203,7 +203,51 @@ def fit(radians, response):
     res = minimize_scalar(k, bounds=(0.01, 100), method='bounded')
     kappa = res.x
     success = res.success
-    c = (np.cos(radians) * response).sum() / z
-    s = (np.sin(radians) * response).sum() / z
+    c = (np.cos(directions) * response).sum() / z
+    s = (np.sin(directions) * response).sum() / z
     p = ((c*np.cos(mu) + s*np.sin(mu)) / iv(1, kappa) * iv(0, kappa) + 1) / 2
     return success, mu, p, kappa
+
+
+def concatenate_monet2(unit_key):
+    """Concatenates the Monet2 directional trial responses for the specified unit
+    Args:
+        unit_key (dict) dictionary to uniquely identify a functional unit (must contain the keys: "session", "scan_idx", "unit_id")
+    Returns: 
+        indices     (array): array of indices for Monet2 trials
+        directions (array): array of directions (radians) for Monet2 trials
+        responses  (array): array of unit response magnitudes for Monet2 trials
+    """
+    trace = (nda.Activity & unit_key).fetch1('trace')  # fetch activity trace for unit
+
+    dirs, frames, acts = [], [], []
+    for trial in (nda.Stimulus.Trial() & nda.Monet2 & unit_key):  # loop through all Monet2 trials for unit
+        start, end, directions = (nda.Stimulus.Trial * nda.Monet2 & trial).fetch1('start_idx', 'end_idx', 'directions', squeeze=True)
+        subtrial_edges = np.linspace(start, end, len(directions) + 1)
+        subtrial_centers = np.mean(np.vstack((subtrial_edges[:-1], subtrial_edges[1:])), axis=0)
+        f2d = interp1d(subtrial_centers, directions, kind='nearest', fill_value='extrapolate')
+        frames.append(np.arange(start, end + 1))
+        dirs.append(f2d(np.arange(start, end + 1)))
+        acts.append(trace[start: end + 1])
+    
+    indices = np.hstack(frames)
+    directions = np.hstack(dirs)/ 180 * np.pi
+    responses = np.hstack(acts)
+    return indices, directions, responses
+
+def von_mises_pdf(directions, responses):
+    """ Computes the von mises probability density function for provided directions and responses
+    
+    Args:
+        directions (array): array of directions (radians) for Monet2 trials
+        responses  (array): array of unit response magnitudes for Monet2 trials 
+    Returns:
+        unique directions (array): array containing the set of unique directional trials
+        von mises pdf(array): von mises fit for provided directions and responses
+    """
+    _, mu, p, kappa = fit(directions, responses)
+    unique_directions = sorted(list(set(directions)))
+    vm1 = stats.vonmises.pdf(x=unique_directions, loc=mu, kappa=kappa)
+    vm2 = stats.vonmises.pdf(x=unique_directions, loc=mu+np.pi, kappa=kappa)
+    pdf = p*vm1 + (1-p)*vm2
+    return unique_directions, pdf
