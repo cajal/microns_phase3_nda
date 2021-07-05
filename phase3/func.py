@@ -182,6 +182,42 @@ def get_stack_field_image(field_key, stack, desired_res=1):
     return utils.sample_grid(stack, grid).numpy()
 
 
+def reshape_masks(mask_pixels, mask_weights, image_height, image_width):
+    """ Reshape masks into an image_height x image_width x num_masks array."""
+    masks = np.zeros(
+        [image_height, image_width, len(mask_pixels)], dtype=np.float32
+    )
+
+    # Reshape each mask
+    for i, (mp, mw) in enumerate(zip(mask_pixels, mask_weights)):
+        mask_as_vector = np.zeros(image_height * image_width)
+        mask_as_vector[np.squeeze(mp - 1).astype(int)] = np.squeeze(mw)
+        masks[:, :, i] = mask_as_vector.reshape(
+            image_height, image_width, order="F"
+        )
+
+    return masks
+
+def get_all_masks(field_key):
+    """Returns an image_height x image_width x num_masks matrix with all masks."""
+    mask_rel = nda.Segmentation & field_key
+
+    # Get masks
+    image_height, image_width = (nda.Field & field_key).fetch1(
+        "px_height", "px_width"
+    )
+    mask_pixels, mask_weights = mask_rel.fetch(
+        "pixels", "weights", order_by="mask_id"
+    )
+
+    # Reshape masks
+    masks = reshape_masks(
+        mask_pixels, mask_weights, image_height, image_width
+    )
+
+    return masks
+
+
 def fit(directions, response):
     """Fits a mixture of 2 von Mises separated by pi with equal width
     Args:
