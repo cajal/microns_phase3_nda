@@ -8,6 +8,11 @@ import coregister.solve as cs
 from coregister.transform.transform import Transform
 from coregister.utils import em_nm_to_voxels
 
+from scipy.interpolate import interp1d
+from scipy.optimize import minimize_scalar
+from scipy.special import iv
+from scipy import stats
+
 phase3_ng_link = "https://akhilesh-graphene-sharded-dot-neuromancer-seung-import.appspot.com/#!%7B%22layers%22:%5B%7B%22source%22:%22precomputed://https://seungdata.princeton.edu/minnie65-phase3-em/aligned/v1%22%2C%22type%22:%22image%22%2C%22blend%22:%22default%22%2C%22shader%22:%22#uicontrol%20float%20black%20slider%28min=0%2C%20max=1%2C%20default=0.33%29%5Cn#uicontrol%20float%20white%20slider%28min=0%2C%20max=1%2C%20default=0.66%29%5Cnfloat%20rescale%28float%20value%29%20%7B%5Cn%20%20return%20%28value%20-%20black%29%20/%20%28white%20-%20black%29%3B%5Cn%7D%5Cnvoid%20main%28%29%20%7B%5Cn%20%20float%20val%20=%20toNormalized%28getDataValue%28%29%29%3B%5Cn%20%20if%20%28val%20%3C%20black%29%20%7B%5Cn%20%20%20%20emitRGB%28vec3%280%2C0%2C0%29%29%3B%5Cn%20%20%7D%20else%20if%20%28val%20%3E%20white%29%20%7B%5Cn%20%20%20%20emitRGB%28vec3%281.0%2C%201.0%2C%201.0%29%29%3B%5Cn%20%20%7D%20else%20%7B%5Cn%20%20%20%20emitGrayscale%28rescale%28val%29%29%3B%5Cn%20%20%7D%5Cn%7D%22%2C%22shaderControls%22:%7B%7D%2C%22name%22:%22em-phase3%22%7D%2C%7B%22source%22:%22graphene://https://minniev1.microns-daf.com/segmentation/table/minnie3_v1%22%2C%22type%22:%22segmentation_with_graph%22%2C%22skeletonRendering%22:%7B%22mode2d%22:%22lines_and_points%22%2C%22mode3d%22:%22lines%22%7D%2C%22graphOperationMarker%22:%5B%7B%22annotations%22:%5B%5D%2C%22tags%22:%5B%5D%7D%2C%7B%22annotations%22:%5B%5D%2C%22tags%22:%5B%5D%7D%5D%2C%22pathFinder%22:%7B%22color%22:%22#ffff00%22%2C%22pathObject%22:%7B%22annotationPath%22:%7B%22annotations%22:%5B%5D%2C%22tags%22:%5B%5D%7D%2C%22hasPath%22:false%7D%7D%2C%22name%22:%22seg-phase3%22%2C%22visible%22:false%7D%2C%7B%22source%22:%22precomputed://https://s3-hpcrc.rc.princeton.edu/minnie65-phase3-ws/nuclei/v0/seg%22%2C%22type%22:%22segmentation%22%2C%22skeletonRendering%22:%7B%22mode2d%22:%22lines_and_points%22%2C%22mode3d%22:%22lines%22%7D%2C%22name%22:%22nuclear-seg-phase3%22%2C%22visible%22:false%7D%5D%2C%22navigation%22:%7B%22pose%22:%7B%22position%22:%7B%22voxelSize%22:%5B4%2C4%2C40%5D%2C%22voxelCoordinates%22:%5B227465.734375%2C187007.984375%2C19551.4921875%5D%7D%2C%22orientation%22:%5B0%2C-0.7071067690849304%2C0%2C0.7071067690849304%5D%7D%2C%22zoomFactor%22:248.06867890125633%7D%2C%22perspectiveOrientation%22:%5B-0.0012847303878515959%2C0.9988105297088623%2C0.040208619087934494%2C0.02755257673561573%5D%2C%22perspectiveZoom%22:35418.8697184842%2C%22showSlices%22:false%2C%22gpuMemoryLimit%22:2000000000%2C%22concurrentDownloads%22:128%2C%22jsonStateServer%22:%22https://globalv1.daf-apis.com/nglstate/api/v1/post%22%2C%22layout%22:%223d%22%7D"
 
 
@@ -175,3 +180,30 @@ def get_stack_field_image(field_key, stack, desired_res=1):
     grid = get_grid(field_key, desired_res=1)
     grid = grid - np.array([stack_x, stack_y, stack_z])
     return utils.sample_grid(stack, grid).numpy()
+
+
+def fit(radians, response):
+    """Fits a mixture of 2 von Mises separated by pi with equal width
+    Args:
+        radians     (array):    1d-array containing directions in radians
+        response    (array):    1d-array of the same length containing responses
+    Returns:
+        success     (bool):     success of the bounded minimization
+        mu          (float):    center of the first von Mises distribution. the center of the second is mu + pi
+        p           (float):    weight of the first von Mises distribution. the weight of the second is (1-p)
+        kappa       (float):    dispersion of both von Mises distributions
+    """
+    z = response.sum()
+    psi = 2 * radians
+    c = (np.cos(psi) * response).sum() / z
+    s = (np.sin(psi) * response).sum() / z
+    mu = np.arctan2(s, c) / 2
+    r = np.sqrt(c**2 + s**2)
+    k = lambda x: np.abs(1 - 2 * iv(1, x) / iv(0, x) / x - r)
+    res = minimize_scalar(k, bounds=(0.01, 100), method='bounded')
+    kappa = res.x
+    success = res.success
+    c = (np.cos(radians) * response).sum() / z
+    s = (np.sin(radians) * response).sum() / z
+    p = ((c*np.cos(mu) + s*np.sin(mu)) / iv(1, kappa) * iv(0, kappa) + 1) / 2
+    return success, mu, p, kappa
