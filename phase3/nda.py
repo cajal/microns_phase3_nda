@@ -235,7 +235,7 @@ class AreaMembership(dj.Manual):
     definition = """
     -> ScanUnit
     ---
-    brain_area
+    brain_area          : char(10)    # Visual area membership of unit
     
     """
 
