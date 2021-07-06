@@ -16,17 +16,12 @@ class Scan(dj.Manual):
     Class methods not available outside of BCM pipeline environment
     """
     definition = """
-   # Information on completed scan
+    # Information on completed scan
     session              : smallint                     # Session ID
     scan_idx             : smallint                     # Scan ID
     ---
-    filename             : varchar(255)                 # Scan base filename uploaded to S3
     nframes              : int                          # frames recorded
     nfields              : tinyint                      # number of fields
-    px_width             : smallint                     # field pixels per line
-    px_height            : smallint                     # lines per field
-    um_width             : float                        # field width (microns)
-    um_height            : float                        # field height (microns)
     fps                  : float                        # frames per second (Hz)
     """
     
@@ -158,6 +153,7 @@ class Registration(dj.Manual):
         cls.insert(cls.key_source, ignore_extra_fields=True)
 
 
+
 @schema
 class Segmentation(dj.Manual):
     """
@@ -181,7 +177,6 @@ class Segmentation(dj.Manual):
     @classmethod
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
-
 
 @schema
 class Fluorescence(dj.Manual):
@@ -234,6 +229,18 @@ class ScanUnit(dj.Manual):
     @classmethod
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
+
+@schema 
+class AreaMembership(dj.Manual):
+    definition = """
+    -> Registration
+    -> ScanUnit
+    ---
+    brain_area
+    
+    """
+
+
 
 
 @schema
@@ -314,18 +321,6 @@ class StackUnit(dj.Manual):
 
 @schema
 class ManualPupil(dj.Manual):
-    definition = """
-    # Pupil traces
-    -> Scan
-    ---
-    pupil_min_r          : longblob                     # vector of pupil minor radii synchronized with field 1 frame times (pixels)
-    pupil_maj_r          : longblob                     # vector of pupil major radii synchronized with field 1 frame times (pixels)
-    pupil_x              : longblob                     # vector of pupil x positions synchronized with field 1 frame times (pixels)
-    pupil_y              : longblob                     # vector of pupil y positions synchronized with field 1 frame times (pixels)
-    """
-
-@schema 
-class AutomaticPupil(dj.Manual):
     definition = """
     # Pupil traces
     -> Scan
