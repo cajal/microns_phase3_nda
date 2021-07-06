@@ -233,7 +233,6 @@ class ScanUnit(dj.Manual):
 @schema 
 class AreaMembership(dj.Manual):
     definition = """
-    -> Registration
     -> ScanUnit
     ---
     brain_area
