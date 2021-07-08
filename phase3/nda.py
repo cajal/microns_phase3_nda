@@ -317,12 +317,41 @@ class StackUnit(dj.Manual):
         stack_unit_np = (cls.key_source*Stack).proj(np_x = 'round(stack_x - x + um_width/2, 2)', np_y = 'round(stack_y - y + um_height/2, 2)', np_z = 'round(stack_z - z + um_depth/2, 2)')
         cls.insert((cls.key_source.proj(motor_x='stack_x', motor_y='stack_y', motor_z='stack_z') * stack_unit_np), ignore_extra_fields=True)
 
+@schema
+class RawTreadmill(dj.Manual):
+    """
+    Class methods not available outside of BCM pipeline environment
+    """
+    definition = """
+    # Treadmill traces
+    ->nda.Scan
+    ---
+    treadmill_velocity      : longblob                     # vector of treadmill velocities synchronized
+    treadmill_timestamps    : longblob                     # vector of timestamps for each velocity sample
+    """
+    
+@schema
+class RawPupil(dj.Manual):
+    """
+    Class methods not available outside of BCM pipeline environment
+    """
+    definition = """
+    # Pupil traces
+    -> nda.Scan
+    ---
+    pupil_min_r          : longblob                     # vector of pupil minor radii  (pixels)
+    pupil_maj_r          : longblob                     # vector of pupil major radii  (pixels)
+    pupil_x              : longblob                     # vector of pupil x positions  (pixels)
+    pupil_y              : longblob                     # vector of pupil y positions  (pixels)
+    pupil_times          : longblob                     # vector of timestamps (seconds from start of scan)
+    """
+    
 
 @schema
 class ManualPupil(dj.Manual):
     definition = """
     # Pupil traces
-    -> Scan
+    -> RawPupil
     ---
     pupil_min_r          : longblob                     # vector of pupil minor radii synchronized with field 1 frame times (pixels)
     pupil_maj_r          : longblob                     # vector of pupil major radii synchronized with field 1 frame times (pixels)
@@ -338,7 +367,7 @@ class Treadmill(dj.Manual):
     """
     definition = """
     # Treadmill traces
-    ->Scan
+    ->RawTreadmill
     ---
     treadmill_speed      : longblob                     # vector of treadmill velocities synchronized with field 1 frame times (cm/s)
     """
