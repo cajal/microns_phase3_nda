@@ -364,17 +364,21 @@ class Stimulus(dj.Manual):
     movie                : longblob                     # stimulus images synchronized with field 1 frame times (H x W x T matrix)
     """
     
-    class Trial(dj.Part):
-        definition = """
-        # Information for each Trial
-        -> master
-        trial_idx    :   smallint      # index of trial within stimulus
-        ---
-        type         :   varchar(16)   # type of stimulus trial
-        start_idx    :   int unsigned      # start frame of trial
-        end_idx      :   int unsigned     # end frame of trial
-        condition_hash    : char(20)   # 120-bit hash (The first 20 chars of MD5 in base64)
-        """
+class Trial(dj.Part):
+    definition = """
+    # Information for each Trial
+    -> Stimulus
+    trial_idx    :   smallint      # index of trial within stimulus
+    ---
+    type         :   varchar(16)   # type of stimulus trial
+    start_idx    :   int unsigned      # start frame of trial
+    end_idx      :   int unsigned     # end frame of trial
+    condition_hash    : char(20)   # 120-bit hash (The first 20 chars of MD5 in base64)
+    """
+
+
+
+
 
 @schema
 class Clip(dj.Manual):
