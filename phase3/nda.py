@@ -16,17 +16,12 @@ class Scan(dj.Manual):
     Class methods not available outside of BCM pipeline environment
     """
     definition = """
-   # Information on completed scan
+    # Information on completed scan
     session              : smallint                     # Session ID
     scan_idx             : smallint                     # Scan ID
     ---
-    filename             : varchar(255)                 # Scan base filename uploaded to S3
     nframes              : int                          # frames recorded
     nfields              : tinyint                      # number of fields
-    px_width             : smallint                     # field pixels per line
-    px_height            : smallint                     # lines per field
-    um_width             : float                        # field width (microns)
-    um_height            : float                        # field height (microns)
     fps                  : float                        # frames per second (Hz)
     """
     
@@ -63,6 +58,14 @@ class Scan(dj.Manual):
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
 
+@schema
+class FrameTimes(dj.Manual):
+    definition = """
+    -> Scan
+    --- 
+    frame_times         : longblob      # field 1 frame times with origin at first field 1 frame time (s)
+
+    """
 
 @schema
 class Field(dj.Manual):
@@ -158,6 +161,7 @@ class Registration(dj.Manual):
         cls.insert(cls.key_source, ignore_extra_fields=True)
 
 
+
 @schema
 class Segmentation(dj.Manual):
     """
@@ -181,7 +185,6 @@ class Segmentation(dj.Manual):
     @classmethod
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
-
 
 @schema
 class Fluorescence(dj.Manual):
@@ -234,6 +237,17 @@ class ScanUnit(dj.Manual):
     @classmethod
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
+
+@schema 
+class AreaMembership(dj.Manual):
+    definition = """
+    -> ScanUnit
+    ---
+    brain_area          : char(10)    # Visual area membership of unit
+    
+    """
+
+
 
 
 @schema
@@ -311,24 +325,41 @@ class StackUnit(dj.Manual):
         stack_unit_np = (cls.key_source*Stack).proj(np_x = 'round(stack_x - x + um_width/2, 2)', np_y = 'round(stack_y - y + um_height/2, 2)', np_z = 'round(stack_z - z + um_depth/2, 2)')
         cls.insert((cls.key_source.proj(motor_x='stack_x', motor_y='stack_y', motor_z='stack_z') * stack_unit_np), ignore_extra_fields=True)
 
+@schema
+class RawTreadmill(dj.Manual):
+    """
+    Class methods not available outside of BCM pipeline environment
+    """
+    definition = """
+    # Treadmill traces
+    ->nda.Scan
+    ---
+    treadmill_velocity      : longblob                     # vector of treadmill velocities synchronized
+    treadmill_timestamps    : longblob                     # vector of timestamps for each velocity sample
+    """
+    
+@schema
+class RawPupil(dj.Manual):
+    """
+    Class methods not available outside of BCM pipeline environment
+    """
+    definition = """
+    # Pupil traces
+    -> nda.Scan
+    ---
+    pupil_min_r          : longblob                     # vector of pupil minor radii  (pixels)
+    pupil_maj_r          : longblob                     # vector of pupil major radii  (pixels)
+    pupil_x              : longblob                     # vector of pupil x positions  (pixels)
+    pupil_y              : longblob                     # vector of pupil y positions  (pixels)
+    pupil_times          : longblob                     # vector of timestamps (seconds from start of scan)
+    """
+    
 
 @schema
 class ManualPupil(dj.Manual):
     definition = """
     # Pupil traces
-    -> Scan
-    ---
-    pupil_min_r          : longblob                     # vector of pupil minor radii synchronized with field 1 frame times (pixels)
-    pupil_maj_r          : longblob                     # vector of pupil major radii synchronized with field 1 frame times (pixels)
-    pupil_x              : longblob                     # vector of pupil x positions synchronized with field 1 frame times (pixels)
-    pupil_y              : longblob                     # vector of pupil y positions synchronized with field 1 frame times (pixels)
-    """
-
-@schema 
-class AutomaticPupil(dj.Manual):
-    definition = """
-    # Pupil traces
-    -> Scan
+    -> RawPupil
     ---
     pupil_min_r          : longblob                     # vector of pupil minor radii synchronized with field 1 frame times (pixels)
     pupil_maj_r          : longblob                     # vector of pupil major radii synchronized with field 1 frame times (pixels)
@@ -344,7 +375,7 @@ class Treadmill(dj.Manual):
     """
     definition = """
     # Treadmill traces
-    ->Scan
+    ->RawTreadmill
     ---
     treadmill_speed      : longblob                     # vector of treadmill velocities synchronized with field 1 frame times (cm/s)
     """
@@ -356,7 +387,6 @@ class Treadmill(dj.Manual):
     @classmethod
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
-
 
 @schema
 class Stimulus(dj.Manual):
@@ -370,17 +400,23 @@ class Stimulus(dj.Manual):
     movie                : longblob                     # stimulus images synchronized with field 1 frame times (H x W x T matrix)
     """
     
-    class Trial(dj.Part):
-        definition = """
-        # Information for each Trial
-        -> master
-        trial_idx    :   smallint      # index of trial within stimulus
-        ---
-        type         :   varchar(16)   # type of stimulus trial
-        start_idx    :   int unsigned      # start frame of trial
-        end_idx      :   int unsigned     # end frame of trial
-        condition_hash    : char(20)   # 120-bit hash (The first 20 chars of MD5 in base64)
-        """
+class Trial(dj.Part):
+    definition = """
+    # Information for each Trial
+    -> Stimulus
+    trial_idx           :   smallint      # index of trial within stimulus
+    ---
+    type                :   varchar(16)   # type of stimulus trial
+    start_idx           :   int unsigned      # start frame of trial
+    end_idx             :   int unsigned     # end frame of trial
+    start_frame_time    : double          # time of starting frame
+    end_frame_time      : double          # time of ending frame
+    frame_times         : longblob        # time of each frame in trial 
+    condition_hash      : char(20)   # 120-bit hash (The first 20 chars of MD5 in base64)
+    """
+
+
+
 
 @schema
 class Clip(dj.Manual):
