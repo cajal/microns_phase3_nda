@@ -365,7 +365,7 @@ class RawManualPupil(dj.Manual):
 class ManualPupil(dj.Manual):
     definition = """
     # Pupil traces
-    -> RawPupil
+    -> RawManualPupil
     ---
     pupil_min_r          : longblob                     # vector of pupil minor radii synchronized with field 1 frame times (pixels)
     pupil_maj_r          : longblob                     # vector of pupil major radii synchronized with field 1 frame times (pixels)
