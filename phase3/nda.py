@@ -85,9 +85,9 @@ class Field(dj.Manual):
     px_height            : smallint                     # lines per field
     um_width             : float                        # field width (microns)
     um_height            : float                        # field height (microns)
-    field_x              : float                        # field x from registration into stack (microns)
-    field_y              : float                        # field y from registration into stack (microns)
-    field_z              : float                        # field z from registration into stack (microns)
+    field_x              : float                        # field x motor coordinates (microns)
+    field_y              : float                        # field y motor coordinates (microns)
+    field_z              : float                        # field z motor coordinates (microns)
     """
       
     @property
@@ -404,7 +404,7 @@ class Stimulus(dj.Manual):
     # Stimulus presented
     -> Scan
     ---
-    movie                : longblob                     # stimulus images synchronized with field 1 frame times (H x W x T matrix)
+    movie                : longblob                     # stimulus images synchronized with field 1 frame times (F x H x W matrix)
     """
 
 
@@ -412,16 +412,16 @@ class Stimulus(dj.Manual):
 class Trial(dj.Manual):
     definition = """
     # Information for each Trial
-    -> Stimulus
-    trial_idx           :   smallint      # index of trial within stimulus
+    ->Stimulus
+    trial_idx            : smallint                     # index of trial within stimulus
     ---
-    type                :   varchar(16)   # type of stimulus trial
-    start_idx           :   int unsigned      # start frame of trial
-    end_idx             :   int unsigned     # end frame of trial
-    start_frame_time    : double          # time of starting frame
-    end_frame_time      : double          # time of ending frame
-    frame_times         : longblob        # time of each frame in trial 
-    condition_hash      : char(20)   # 120-bit hash (The first 20 chars of MD5 in base64)
+    type                 : varchar(16)                  # type of stimulus trial
+    start_idx            : int unsigned                 # index of field 1 scan frame at start of trial
+    end_idx              : int unsigned                 # index of field 1 scan frame at end of trial
+    start_frame_time     : double                       # start time of stimulus frame relative to scan start (seconds)
+    end_frame_time       : double                       # end time of stimulus frame relative to scan start (seconds)
+    frame_times          : longblob                     # full vector of stimulus frame times relative to scan start (seconds)
+    condition_hash       : char(20)                     # 120-bit hash (The first 20 chars of MD5 in base64)
     """
 
 
