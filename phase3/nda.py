@@ -584,8 +584,10 @@ class DepthTimes(dj.Manual):
     Class methods not available outside of BCM pipeline environment
     """
     definition = """
-    # scan times per frame interleaved for each depth (in seconds, relative to the start of the scan)
+    # scan times per frame (in seconds, relative to the start of the scan)
     ->Scan
     ---
-    depth_times         : longblob            # stimulus frame times (with depth interleaved, seconds from start of recording)
+    field1_times        : longblob            # stimulus frame times for field 1 of each scan, len = nframes
+    ndepths             : small int           # number of imaging depths recorded for each scan
+    depth_times         : longblob            # stimulus frame times interleaved by depth, len = nframes x ndepths
     """
