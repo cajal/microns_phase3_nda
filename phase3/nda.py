@@ -588,6 +588,6 @@ class DepthTimes(dj.Manual):
     ->Scan
     ---
     field1_times        : longblob            # stimulus frame times for field 1 of each scan, len = nframes
-    ndepths             : small int           # number of imaging depths recorded for each scan
+    ndepths             : smallint           # number of imaging depths recorded for each scan
     depth_times         : longblob            # stimulus frame times interleaved by depth, len = nframes x ndepths
     """
