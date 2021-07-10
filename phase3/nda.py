@@ -408,8 +408,8 @@ class Stimulus(dj.Manual):
     """
 
 
-@schema    
-class Trial(dj.Manual):
+    
+class Trial(dj.Part):
     definition = """
     # Information for each Trial
     -> Stimulus
