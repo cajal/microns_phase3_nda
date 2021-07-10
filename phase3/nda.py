@@ -400,8 +400,9 @@ class Stimulus(dj.Manual):
     ---
     movie                : longblob                     # stimulus images synchronized with field 1 frame times (H x W x T matrix)
     """
-    
-class Trial(dj.Part):
+
+@schema    
+class Trial(dj.Manual):
     definition = """
     # Information for each Trial
     -> Stimulus
