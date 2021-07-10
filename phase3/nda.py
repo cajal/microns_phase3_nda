@@ -283,7 +283,7 @@ class Oracle(dj.Manual):
     """
     definition = """
     # Leave-one-out correlation for repeated videos in stimulus.
-    -> nda.ScanUnit
+    -> ScanUnit
     ---
     trials               : int                          # number of trials used
     pearson              : float                        # per unit oracle pearson correlation over all movies
@@ -337,7 +337,7 @@ class RawTreadmill(dj.Manual):
     """
     definition = """
     # Treadmill traces
-    ->nda.Scan
+    ->Scan
     ---
     treadmill_velocity      : longblob                     # vector of treadmill velocities synchronized
     treadmill_timestamps    : longblob                     # vector of timestamps for each velocity sample
@@ -351,7 +351,7 @@ class RawManualPupil(dj.Manual):
     """
     definition = """
     # Pupil traces
-    -> nda.Scan
+    -> Scan
     ---
     pupil_min_r          : longblob                     # vector of pupil minor radii  (pixels)
     pupil_maj_r          : longblob                     # vector of pupil major radii  (pixels)
