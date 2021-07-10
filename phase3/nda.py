@@ -345,7 +345,7 @@ class RawTreadmill(dj.Manual):
     
 
 @schema
-class RawPupil(dj.Manual):
+class RawManualPupil(dj.Manual):
     """
     Class methods not available outside of BCM pipeline environment
     """
