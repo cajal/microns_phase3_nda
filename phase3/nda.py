@@ -11,6 +11,7 @@ import coregister.solve as cs
 from coregister.transform.transform import Transform
 from coregister.utils import em_nm_to_voxels
 
+
 @schema
 class Scan(dj.Manual):
     """
@@ -59,6 +60,7 @@ class Scan(dj.Manual):
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
 
+
 @schema
 class FrameTimes(dj.Manual):
     definition = """
@@ -67,6 +69,7 @@ class FrameTimes(dj.Manual):
     frame_times         : longblob      # field 1 frame times with origin at first field 1 frame time (s)
 
     """
+
 
 @schema
 class Field(dj.Manual):
@@ -162,7 +165,6 @@ class Registration(dj.Manual):
         cls.insert(cls.key_source, ignore_extra_fields=True)
 
 
-
 @schema
 class Segmentation(dj.Manual):
     """
@@ -186,6 +188,7 @@ class Segmentation(dj.Manual):
     @classmethod
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
+
 
 @schema
 class Fluorescence(dj.Manual):
@@ -239,6 +242,7 @@ class ScanUnit(dj.Manual):
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
 
+
 @schema 
 class AreaMembership(dj.Manual):
     definition = """
@@ -247,8 +251,6 @@ class AreaMembership(dj.Manual):
     brain_area          : char(10)    # Visual area membership of unit
     
     """
-
-
 
 
 @schema
@@ -297,6 +299,7 @@ class Oracle(dj.Manual):
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
 
+
 @schema
 class StackUnit(dj.Manual):
     """
@@ -326,6 +329,7 @@ class StackUnit(dj.Manual):
         stack_unit_np = (cls.key_source*Stack).proj(np_x = 'round(stack_x - x + um_width/2, 2)', np_y = 'round(stack_y - y + um_height/2, 2)', np_z = 'round(stack_z - z + um_depth/2, 2)')
         cls.insert((cls.key_source.proj(motor_x='stack_x', motor_y='stack_y', motor_z='stack_z') * stack_unit_np), ignore_extra_fields=True)
 
+
 @schema
 class RawTreadmill(dj.Manual):
     """
@@ -339,6 +343,7 @@ class RawTreadmill(dj.Manual):
     treadmill_timestamps    : longblob                     # vector of timestamps for each velocity sample
     """
     
+
 @schema
 class RawPupil(dj.Manual):
     """
@@ -389,6 +394,7 @@ class Treadmill(dj.Manual):
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
 
+
 @schema
 class Stimulus(dj.Manual):
     """
@@ -400,6 +406,7 @@ class Stimulus(dj.Manual):
     ---
     movie                : longblob                     # stimulus images synchronized with field 1 frame times (H x W x T matrix)
     """
+
 
 @schema    
 class Trial(dj.Manual):
@@ -418,8 +425,6 @@ class Trial(dj.Manual):
     """
 
 
-
-
 @schema
 class Clip(dj.Manual):
     definition = """
@@ -431,6 +436,7 @@ class Clip(dj.Manual):
     clip                 : longblob                     # clip as an array (num_frames x h x w)
     short_movie_name     : char(15)                     # short movie category/title
     """
+
 
 @schema
 class Monet2(dj.Manual):
@@ -456,6 +462,7 @@ class Monet2(dj.Manual):
     movie                : longblob                     # (computed) uint8 movie
     """
 
+
 @schema
 class Trippy(dj.Manual):
     definition = """
@@ -476,6 +483,7 @@ class Trippy(dj.Manual):
     spatial_freq         : float                        # (cy/point) approximate max. The actual frequencies may be higher.
     movie                : longblob                     # rendered movie
     """
+
 
 @schema
 class Coregistration(dj.Manual):
