@@ -5,6 +5,7 @@ import numpy as np
 import datajoint as dj
 
 schema = dj.schema('microns_phase3_nda')
+schema.spawn_missing_classes()
 
 import coregister.solve as cs
 from coregister.transform.transform import Transform
