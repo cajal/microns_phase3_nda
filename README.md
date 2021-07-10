@@ -39,7 +39,7 @@ To view schema ERD:
 dj.ERD(nda)
 ```
 
-![nda](images/nda_erd_3.png)
+![nda](images/nda_erd.png)
 
 For tutorial see: [notebook example](notebooks/microns_phase3_nda_examples.ipynb) 
 
