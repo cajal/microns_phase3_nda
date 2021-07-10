@@ -576,3 +576,16 @@ class MeanIntensity(dj.Manual):
     @classmethod
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
+
+
+@schema
+class DepthTimes(dj.Manual):
+    """
+    Class methods not available outside of BCM pipeline environment
+    """
+    definition = """
+    # scan times per frame interleaved for each depth (in seconds, relative to the start of the scan)
+    ->Scan
+    ---
+    depth_times         : longblob            # stimulus frame times (with depth interleaved, seconds from start of recording)
+    """
