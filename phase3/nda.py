@@ -58,6 +58,14 @@ class Scan(dj.Manual):
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
 
+@schema
+class FrameTimes(dj.Manual):
+    definition = """
+    -> Scan
+    --- 
+    frame_times         : longblob      # field 1 frame times with origin at first field 1 frame time (s)
+
+    """
 
 @schema
 class Field(dj.Manual):
@@ -380,7 +388,6 @@ class Treadmill(dj.Manual):
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
 
-
 @schema
 class Stimulus(dj.Manual):
     """
@@ -397,14 +404,16 @@ class Trial(dj.Part):
     definition = """
     # Information for each Trial
     -> Stimulus
-    trial_idx    :   smallint      # index of trial within stimulus
+    trial_idx           :   smallint      # index of trial within stimulus
     ---
-    type         :   varchar(16)   # type of stimulus trial
-    start_idx    :   int unsigned      # start frame of trial
-    end_idx      :   int unsigned     # end frame of trial
-    condition_hash    : char(20)   # 120-bit hash (The first 20 chars of MD5 in base64)
+    type                :   varchar(16)   # type of stimulus trial
+    start_idx           :   int unsigned      # start frame of trial
+    end_idx             :   int unsigned     # end frame of trial
+    start_frame_time    : double          # time of starting frame
+    end_frame_time      : double          # time of ending frame
+    frame_times         : longblob        # time of each frame in trial 
+    condition_hash      : char(20)   # 120-bit hash (The first 20 chars of MD5 in base64)
     """
-
 
 
 
