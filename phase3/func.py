@@ -257,8 +257,8 @@ def concatenate_monet2(unit_key):
     trace = (nda.Activity & unit_key).fetch1('trace')  # fetch activity trace for unit
 
     dirs, frames, acts = [], [], []
-    for trial in (nda.Stimulus.Trial() & nda.Monet2 & unit_key):  # loop through all Monet2 trials for unit
-        start, end, directions = (nda.Stimulus.Trial * nda.Monet2 & trial).fetch1('start_idx', 'end_idx', 'directions', squeeze=True)
+    for trial in (nda.Trial() & nda.Monet2 & unit_key):  # loop through all Monet2 trials for unit
+        start, end, directions = (nda.Trial * nda.Monet2 & trial).fetch1('start_idx', 'end_idx', 'directions', squeeze=True)
         subtrial_edges = np.linspace(start, end, len(directions) + 1)
         subtrial_centers = np.mean(np.vstack((subtrial_edges[:-1], subtrial_edges[1:])), axis=0)
         f2d = interp1d(subtrial_centers, directions, kind='nearest', fill_value='extrapolate')
