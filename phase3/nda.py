@@ -5,10 +5,12 @@ import numpy as np
 import datajoint as dj
 
 schema = dj.schema('microns_phase3_nda')
+schema.spawn_missing_classes()
 
 import coregister.solve as cs
 from coregister.transform.transform import Transform
 from coregister.utils import em_nm_to_voxels
+
 
 @schema
 class Scan(dj.Manual):
@@ -58,14 +60,6 @@ class Scan(dj.Manual):
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
 
-@schema
-class FrameTimes(dj.Manual):
-    definition = """
-    -> Scan
-    --- 
-    frame_times         : longblob      # field 1 frame times with origin at first field 1 frame time (s)
-
-    """
 
 @schema
 class Field(dj.Manual):
@@ -81,9 +75,9 @@ class Field(dj.Manual):
     px_height            : smallint                     # lines per field
     um_width             : float                        # field width (microns)
     um_height            : float                        # field height (microns)
-    field_x              : float                        # field x from registration into stack (microns)
-    field_y              : float                        # field y from registration into stack (microns)
-    field_z              : float                        # field z from registration into stack (microns)
+    field_x              : float                        # field x motor coordinates (microns)
+    field_y              : float                        # field y motor coordinates (microns)
+    field_z              : float                        # field z motor coordinates (microns)
     """
       
     @property
@@ -161,7 +155,6 @@ class Registration(dj.Manual):
         cls.insert(cls.key_source, ignore_extra_fields=True)
 
 
-
 @schema
 class Segmentation(dj.Manual):
     """
@@ -185,6 +178,7 @@ class Segmentation(dj.Manual):
     @classmethod
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
+
 
 @schema
 class Fluorescence(dj.Manual):
@@ -238,6 +232,7 @@ class ScanUnit(dj.Manual):
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
 
+
 @schema 
 class AreaMembership(dj.Manual):
     definition = """
@@ -246,8 +241,6 @@ class AreaMembership(dj.Manual):
     brain_area          : char(10)    # Visual area membership of unit
     
     """
-
-
 
 
 @schema
@@ -280,7 +273,7 @@ class Oracle(dj.Manual):
     """
     definition = """
     # Leave-one-out correlation for repeated videos in stimulus.
-    -> nda.ScanUnit
+    -> ScanUnit
     ---
     trials               : int                          # number of trials used
     pearson              : float                        # per unit oracle pearson correlation over all movies
@@ -295,6 +288,7 @@ class Oracle(dj.Manual):
     @classmethod
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
+
 
 @schema
 class StackUnit(dj.Manual):
@@ -325,6 +319,7 @@ class StackUnit(dj.Manual):
         stack_unit_np = (cls.key_source*Stack).proj(np_x = 'round(stack_x - x + um_width/2, 2)', np_y = 'round(stack_y - y + um_height/2, 2)', np_z = 'round(stack_z - z + um_depth/2, 2)')
         cls.insert((cls.key_source.proj(motor_x='stack_x', motor_y='stack_y', motor_z='stack_z') * stack_unit_np), ignore_extra_fields=True)
 
+
 @schema
 class RawTreadmill(dj.Manual):
     """
@@ -332,20 +327,21 @@ class RawTreadmill(dj.Manual):
     """
     definition = """
     # Treadmill traces
-    ->nda.Scan
+    ->Scan
     ---
     treadmill_velocity      : longblob                     # vector of treadmill velocities synchronized
     treadmill_timestamps    : longblob                     # vector of timestamps for each velocity sample
     """
     
+
 @schema
-class RawPupil(dj.Manual):
+class RawManualPupil(dj.Manual):
     """
     Class methods not available outside of BCM pipeline environment
     """
     definition = """
     # Pupil traces
-    -> nda.Scan
+    -> Scan
     ---
     pupil_min_r          : longblob                     # vector of pupil minor radii  (pixels)
     pupil_maj_r          : longblob                     # vector of pupil major radii  (pixels)
@@ -359,7 +355,7 @@ class RawPupil(dj.Manual):
 class ManualPupil(dj.Manual):
     definition = """
     # Pupil traces
-    -> RawPupil
+    -> RawManualPupil
     ---
     pupil_min_r          : longblob                     # vector of pupil minor radii synchronized with field 1 frame times (pixels)
     pupil_maj_r          : longblob                     # vector of pupil major radii synchronized with field 1 frame times (pixels)
@@ -388,6 +384,7 @@ class Treadmill(dj.Manual):
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
 
+
 @schema
 class Stimulus(dj.Manual):
     """
@@ -397,25 +394,25 @@ class Stimulus(dj.Manual):
     # Stimulus presented
     -> Scan
     ---
-    movie                : longblob                     # stimulus images synchronized with field 1 frame times (H x W x T matrix)
+    movie                : longblob                     # stimulus images synchronized with field 1 frame times (F x H x W matrix)
     """
-    
-class Trial(dj.Part):
+
+
+@schema
+class Trial(dj.Manual):
     definition = """
     # Information for each Trial
-    -> Stimulus
-    trial_idx           :   smallint      # index of trial within stimulus
+    ->Stimulus
+    trial_idx            : smallint                     # index of trial within stimulus
     ---
-    type                :   varchar(16)   # type of stimulus trial
-    start_idx           :   int unsigned      # start frame of trial
-    end_idx             :   int unsigned     # end frame of trial
-    start_frame_time    : double          # time of starting frame
-    end_frame_time      : double          # time of ending frame
-    frame_times         : longblob        # time of each frame in trial 
-    condition_hash      : char(20)   # 120-bit hash (The first 20 chars of MD5 in base64)
+    type                 : varchar(16)                  # type of stimulus trial
+    start_idx            : int unsigned                 # index of field 1 scan frame at start of trial
+    end_idx              : int unsigned                 # index of field 1 scan frame at end of trial
+    start_frame_time     : double                       # start time of stimulus frame relative to scan start (seconds)
+    end_frame_time       : double                       # end time of stimulus frame relative to scan start (seconds)
+    frame_times          : longblob                     # full vector of stimulus frame times relative to scan start (seconds)
+    condition_hash       : char(20)                     # 120-bit hash (The first 20 chars of MD5 in base64)
     """
-
-
 
 
 @schema
@@ -429,6 +426,7 @@ class Clip(dj.Manual):
     clip                 : longblob                     # clip as an array (num_frames x h x w)
     short_movie_name     : char(15)                     # short movie category/title
     """
+
 
 @schema
 class Monet2(dj.Manual):
@@ -454,6 +452,7 @@ class Monet2(dj.Manual):
     movie                : longblob                     # (computed) uint8 movie
     """
 
+
 @schema
 class Trippy(dj.Manual):
     definition = """
@@ -474,6 +473,7 @@ class Trippy(dj.Manual):
     spatial_freq         : float                        # (cy/point) approximate max. The actual frequencies may be higher.
     movie                : longblob                     # rendered movie
     """
+
 
 @schema
 class Coregistration(dj.Manual):
@@ -566,3 +566,18 @@ class MeanIntensity(dj.Manual):
     @classmethod
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
+
+
+@schema
+class DepthTimes(dj.Manual):
+    """
+    Class methods not available outside of BCM pipeline environment
+    """
+    definition = """
+    # scan times per frame (in seconds, relative to the start of the scan)
+    ->Scan
+    ---
+    field1_times        : longblob            # stimulus frame times for field 1 of each scan, len = nframes
+    ndepths             : smallint           # number of imaging depths recorded for each scan
+    depth_times         : longblob            # stimulus frame times interleaved by depth, len = nframes x ndepths
+    """

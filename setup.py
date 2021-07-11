@@ -12,5 +12,5 @@ setup(
     author='Stelios Papadopoulos',
     author_email='spapadop@bcm.edu',
     packages=find_packages(exclude=[]),
-    install_requires=['numpy', 'tqdm', 'scipy', 'pandas', 'datajoint', 'pykdtree', 'ipyvolume', 'matplotlib', 'decorator', 'torch', 'tifffile']
+    install_requires=['numpy', 'tqdm', 'scipy', 'pandas', 'datajoint', 'pykdtree', 'ipyvolume', 'matplotlib', 'decorator', 'torch', 'tifffile', 'scikit-video', 'nglui', 'caveclient']
 )
