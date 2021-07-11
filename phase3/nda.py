@@ -62,16 +62,6 @@ class Scan(dj.Manual):
 
 
 @schema
-class FrameTimes(dj.Manual):
-    definition = """
-    -> Scan
-    --- 
-    frame_times         : longblob      # field 1 frame times with origin at first field 1 frame time (s)
-
-    """
-
-
-@schema
 class Field(dj.Manual):
     """
     Class methods not available outside of BCM pipeline environment
