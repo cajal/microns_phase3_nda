@@ -100,9 +100,9 @@ class Stack(dj.Manual):
     stack_session        : smallint                     # session index for the mouse
     stack_idx            : smallint                     # id of the stack
     ---
-    z                    : float                        # (um) center of volume in the motor coordinate system (cortex is at 0)
-    y                    : float                        # (um) center of volume in the motor coordinate system
-    x                    : float                        # (um) center of volume in the motor coordinate system
+    motor_z                    : float                        # (um) center of volume in the motor coordinate system (cortex is at 0)
+    motor_y                    : float                        # (um) center of volume in the motor coordinate system
+    motor_x                    : float                        # (um) center of volume in the motor coordinate system
     px_depth             : smallint                     # number of slices
     px_height            : smallint                     # lines per frame
     px_width             : smallint                     # pixels per line
