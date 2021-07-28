@@ -8,6 +8,10 @@ import re
 import urllib
 import json
 
+def clock2math(t): 
+    """shifts convention from 0 degrees at 12 o'clock to 0 degrees at 3 o'clock""" 
+    return ((np.pi / 2) - t) % (2 * np.pi)
+
 
 def create_grid(um_sizes, desired_res=1):
     """ Create a grid corresponding to the sample position of each pixel/voxel in a FOV of
