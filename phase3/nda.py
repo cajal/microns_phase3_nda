@@ -581,3 +581,24 @@ class DepthTimes(dj.Manual):
     ndepths             : smallint           # number of imaging depths recorded for each scan
     depth_times         : longblob            # stimulus frame times interleaved by depth, len = nframes x ndepths
     """
+
+
+@schema
+class MaskClassification(dj.Manual):
+    """
+    Class methods not available outside of BCM pipeline environment
+    """
+    definition = """
+    # classification of segmented masks using CaImAn package
+    ->Segmentation
+    ---
+    mask_type                 : varchar(16)                  # classification of mask as soma or artifact
+    """
+
+    @property
+    def key_source(self):
+        return meso.MaskClassification.Type.proj(mask_type='type') & {'animal_id': 17797, 'segmentation_method': 6} & Scan
+
+    @classmethod
+    def fill(cls):
+        cls.insert(cls.key_source, ignore_extra_fields=True)
