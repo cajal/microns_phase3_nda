@@ -486,12 +486,12 @@ class StackUnit(dj.Manual):
     -> Registration
     -> ScanUnit
     ---
-    motor_x         : float    # x coordinate of unit_id in motor/ stack coordinates
-    motor_y         : float    # y coordinate of unit_id in motor/ stack coordinates
-    motor_z         : float    # z coordinate of unit_id in motor/ stack coordinates
-    np_x            : float    # x coordinate of unit_id in numpy / stack coordinates
-    np_y            : float    # y coordinate of unit_id in numpy / stack coordinates
-    np_z            : float    # z coordinate of unit_id in numpy / stack coordinates
+    motor_x            : float    # x coordinate of unit_id in motor/ stack coordinates
+    motor_y            : float    # y coordinate of unit_id in motor/ stack coordinates
+    motor_z            : float    # z coordinate of unit_id in motor/ stack coordinates
+    stack_x            : float    # x coordinate of unit_id in numpy / stack coordinates
+    stack_y            : float    # y coordinate of unit_id in numpy / stack coordinates
+    stack_z            : float    # z coordinate of unit_id in numpy / stack coordinates
     """
     
     segmentation_key = {'animal_id': 17797, 'segmentation_method': 6}
