@@ -300,12 +300,12 @@ class StackUnit(dj.Manual):
     -> Registration
     -> ScanUnit
     ---
-    motor_x         : float    # x coordinate of unit_id in motor/ stack coordinates
-    motor_y         : float    # y coordinate of unit_id in motor/ stack coordinates
-    motor_z         : float    # z coordinate of unit_id in motor/ stack coordinates
-    np_x            : float    # x coordinate of unit_id in numpy / stack coordinates
-    np_y            : float    # y coordinate of unit_id in numpy / stack coordinates
-    np_z            : float    # z coordinate of unit_id in numpy / stack coordinates
+    motor_x         : float    # centroid x stack coordinates with motor offset (microns)
+    motor_y         : float    # centroid y stack coordinates with motor offset (microns)
+    motor_z         : float    # centroid z stack coordinates with motor offset (microns)
+    stack_x            : float    # centroid x stack coordinates (microns)
+    stack_y            : float    # centroid y stack coordinates (microns)
+    stack_z            : float    # centroid z stack coordinates (microns)
     """
     
     segmentation_key = {'animal_id': 17797, 'segmentation_method': 6}
@@ -316,8 +316,8 @@ class StackUnit(dj.Manual):
     
     @classmethod
     def fill(cls):
-        stack_unit_np = (cls.key_source*Stack).proj(np_x = 'round(stack_x - x + um_width/2, 2)', np_y = 'round(stack_y - y + um_height/2, 2)', np_z = 'round(stack_z - z + um_depth/2, 2)')
-        cls.insert((cls.key_source.proj(motor_x='stack_x', motor_y='stack_y', motor_z='stack_z') * stack_unit_np), ignore_extra_fields=True)
+        stack_unit = (cls.key_source*Stack).proj(stack_x = 'round(stack_x - x + um_width/2, 2)', stack_y = 'round(stack_y - y + um_height/2, 2)', stack_z = 'round(stack_z - z + um_depth/2, 2)')
+        cls.insert((cls.key_source.proj(motor_x='stack_x', motor_y='stack_y', motor_z='stack_z') * stack_unit), ignore_extra_fields=True)
 
 
 @schema
