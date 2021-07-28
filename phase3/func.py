@@ -13,7 +13,33 @@ from scipy.optimize import minimize_scalar
 from scipy.special import iv
 from scipy import stats
 
-phase3_ng_link = "https://akhilesh-graphene-sharded-dot-neuromancer-seung-import.appspot.com/#!%7B%22layers%22:%5B%7B%22source%22:%22precomputed://https://seungdata.princeton.edu/minnie65-phase3-em/aligned/v1%22%2C%22type%22:%22image%22%2C%22blend%22:%22default%22%2C%22shader%22:%22#uicontrol%20float%20black%20slider%28min=0%2C%20max=1%2C%20default=0.33%29%5Cn#uicontrol%20float%20white%20slider%28min=0%2C%20max=1%2C%20default=0.66%29%5Cnfloat%20rescale%28float%20value%29%20%7B%5Cn%20%20return%20%28value%20-%20black%29%20/%20%28white%20-%20black%29%3B%5Cn%7D%5Cnvoid%20main%28%29%20%7B%5Cn%20%20float%20val%20=%20toNormalized%28getDataValue%28%29%29%3B%5Cn%20%20if%20%28val%20%3C%20black%29%20%7B%5Cn%20%20%20%20emitRGB%28vec3%280%2C0%2C0%29%29%3B%5Cn%20%20%7D%20else%20if%20%28val%20%3E%20white%29%20%7B%5Cn%20%20%20%20emitRGB%28vec3%281.0%2C%201.0%2C%201.0%29%29%3B%5Cn%20%20%7D%20else%20%7B%5Cn%20%20%20%20emitGrayscale%28rescale%28val%29%29%3B%5Cn%20%20%7D%5Cn%7D%22%2C%22shaderControls%22:%7B%7D%2C%22name%22:%22em-phase3%22%7D%2C%7B%22source%22:%22graphene://https://minniev1.microns-daf.com/segmentation/table/minnie3_v1%22%2C%22type%22:%22segmentation_with_graph%22%2C%22skeletonRendering%22:%7B%22mode2d%22:%22lines_and_points%22%2C%22mode3d%22:%22lines%22%7D%2C%22graphOperationMarker%22:%5B%7B%22annotations%22:%5B%5D%2C%22tags%22:%5B%5D%7D%2C%7B%22annotations%22:%5B%5D%2C%22tags%22:%5B%5D%7D%5D%2C%22pathFinder%22:%7B%22color%22:%22#ffff00%22%2C%22pathObject%22:%7B%22annotationPath%22:%7B%22annotations%22:%5B%5D%2C%22tags%22:%5B%5D%7D%2C%22hasPath%22:false%7D%7D%2C%22name%22:%22seg-phase3%22%2C%22visible%22:false%7D%2C%7B%22source%22:%22precomputed://https://s3-hpcrc.rc.princeton.edu/minnie65-phase3-ws/nuclei/v0/seg%22%2C%22type%22:%22segmentation%22%2C%22skeletonRendering%22:%7B%22mode2d%22:%22lines_and_points%22%2C%22mode3d%22:%22lines%22%7D%2C%22name%22:%22nuclear-seg-phase3%22%2C%22visible%22:false%7D%5D%2C%22navigation%22:%7B%22pose%22:%7B%22position%22:%7B%22voxelSize%22:%5B4%2C4%2C40%5D%2C%22voxelCoordinates%22:%5B227465.734375%2C187007.984375%2C19551.4921875%5D%7D%2C%22orientation%22:%5B0%2C-0.7071067690849304%2C0%2C0.7071067690849304%5D%7D%2C%22zoomFactor%22:248.06867890125633%7D%2C%22perspectiveOrientation%22:%5B-0.0012847303878515959%2C0.9988105297088623%2C0.040208619087934494%2C0.02755257673561573%5D%2C%22perspectiveZoom%22:35418.8697184842%2C%22showSlices%22:false%2C%22gpuMemoryLimit%22:2000000000%2C%22concurrentDownloads%22:128%2C%22jsonStateServer%22:%22https://globalv1.daf-apis.com/nglstate/api/v1/post%22%2C%22layout%22:%223d%22%7D"
+
+def em_nm_to_voxels_phase3(xyz, x_offset=31000, y_offset=500, z_offset=3150, inverse=False):
+    """convert EM nanometers to neuroglancer voxels
+    Parameters
+    ----------
+    xyz : :class:`numpy.ndarray`
+        N x 3, the inut array in nm
+    inverse : bool
+        go from voxels to nm
+    Returns
+    -------
+    vxyz : :class:`numpy.ndarray`
+        N x 3, the output array in voxels
+    """
+    if inverse: 
+        vxyz = np.zeros_like(xyz).astype(float)
+        vxyz[:, 0] = (xyz[:, 0] - x_offset) * 4.0
+        vxyz[:, 1] = (xyz[:, 1] - y_offset) * 4.0
+        vxyz[:, 2] = (xyz[:, 2] + z_offset) * 40.0
+        
+    else: 
+        vxyz = np.zeros_like(xyz).astype(float)
+        vxyz[:, 0] = ((xyz[:, 0] / 4) + x_offset)
+        vxyz[:, 1] = ((xyz[:, 1] / 4) + y_offset)
+        vxyz[:, 2] = ((xyz[:, 2]/40.0) - z_offset)
+
+    return vxyz
 
 
 def get_grid(field_key, desired_res=1):
@@ -138,7 +164,7 @@ def field_to_EM_grid(field_key, transform_id=None, transform_version=None, trans
 
     grid = get_grid(field_key, desired_res=1)
     # convert grid from motor coordinates to numpy coordinates
-    center_x, center_y, center_z = nda.Stack.fetch1('x', 'y', 'z')
+    center_x, center_y, center_z = nda.Stack.fetch1('motor_x', 'motor_y', 'motor_z')
     length_x, length_y, length_z = nda.Stack.fetch1('um_width', 'um_height', 'um_depth')
     np_grid = grid - np.array([center_x, center_y, center_z]) + np.array([length_x, length_y, length_z]) / 2
     transformed_coordinates = coreg_transform(utils.coordinate(np_grid), transform_id=transform_id, transform_direction=transform_direction, transform_version=transform_version, transform_type=transform_type, transform_obj=transform_obj)
@@ -176,7 +202,7 @@ def get_stack_field_image(field_key, stack, desired_res=1):
     :param desired_res: The desired resolution of output image
     """
     
-    stack_x, stack_y, stack_z = nda.Stack.fetch1('x', 'y', 'z')
+    stack_x, stack_y, stack_z = nda.Stack.fetch1('motor_x', 'motor_y', 'motor_z')
     grid = get_grid(field_key, desired_res=1)
     grid = grid - np.array([stack_x, stack_y, stack_z])
     return utils.sample_grid(stack, grid).numpy()
