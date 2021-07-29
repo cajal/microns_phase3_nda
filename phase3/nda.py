@@ -4,7 +4,7 @@ Phase3 nda schema classes and methods
 import numpy as np
 import datajoint as dj
 
-schema = dj.schema('microns_phase3_nda')
+schema = dj.schema('microns_phase3_nda', create_tables=False)
 schema.spawn_missing_classes()
 
 import coregister.solve as cs
@@ -296,9 +296,9 @@ class Stack(dj.Manual):
     stack_session        : smallint                     # session index for the mouse
     stack_idx            : smallint                     # id of the stack
     ---
-    z                    : float                        # (um) center of volume in the motor coordinate system (cortex is at 0)
-    y                    : float                        # (um) center of volume in the motor coordinate system
-    x                    : float                        # (um) center of volume in the motor coordinate system
+    motor_z                    : float                        # (um) center of volume in the motor coordinate system (cortex is at 0)
+    motor_y                    : float                        # (um) center of volume in the motor coordinate system
+    motor_x                    : float                        # (um) center of volume in the motor coordinate system
     px_depth             : smallint                     # number of slices
     px_height            : smallint                     # lines per frame
     px_width             : smallint                     # pixels per line
@@ -486,12 +486,12 @@ class StackUnit(dj.Manual):
     -> Registration
     -> ScanUnit
     ---
-    motor_x            : float    # x coordinate of unit_id in motor/ stack coordinates
-    motor_y            : float    # y coordinate of unit_id in motor/ stack coordinates
-    motor_z            : float    # z coordinate of unit_id in motor/ stack coordinates
-    stack_x            : float    # x coordinate of unit_id in numpy / stack coordinates
-    stack_y            : float    # y coordinate of unit_id in numpy / stack coordinates
-    stack_z            : float    # z coordinate of unit_id in numpy / stack coordinates
+    motor_x         : float    # centroid x stack coordinates with motor offset (microns)
+    motor_y         : float    # centroid y stack coordinates with motor offset (microns)
+    motor_z         : float    # centroid z stack coordinates with motor offset (microns)
+    stack_x            : float    # centroid x stack coordinates (microns)
+    stack_y            : float    # centroid y stack coordinates (microns)
+    stack_z            : float    # centroid z stack coordinates (microns)
     """
     
     segmentation_key = {'animal_id': 17797, 'segmentation_method': 6}
@@ -502,8 +502,8 @@ class StackUnit(dj.Manual):
     
     @classmethod
     def fill(cls):
-        stack_unit_np = (cls.key_source*Stack).proj(np_x = 'round(stack_x - x + um_width/2, 2)', np_y = 'round(stack_y - y + um_height/2, 2)', np_z = 'round(stack_z - z + um_depth/2, 2)')
-        cls.insert((cls.key_source.proj(motor_x='stack_x', motor_y='stack_y', motor_z='stack_z') * stack_unit_np), ignore_extra_fields=True)
+        stack_unit = (cls.key_source*Stack).proj(stack_x = 'round(stack_x - x + um_width/2, 2)', stack_y = 'round(stack_y - y + um_height/2, 2)', stack_z = 'round(stack_z - z + um_depth/2, 2)')
+        cls.insert((cls.key_source.proj(motor_x='stack_x', motor_y='stack_y', motor_z='stack_z') * stack_unit), ignore_extra_fields=True)
 
 @schema 
 class AreaMembership(dj.Manual):
@@ -565,5 +565,36 @@ class ScanInclude(dj.Lookup):
 
 
 
+@schema
+class FrameTimes(dj.Manual):
+    """
+    Class methods not available outside of BCM pipeline environment
+    """
+    definition = """
+    # scan times per frame (in seconds, relative to the start of the scan)
+    ->Scan
+    ---
+    frame_times        : longblob            # stimulus frame times for field 1 of each scan, (len = nframes)
+    ndepths             : smallint           # number of imaging depths recorded for each scan
+    """
 
 
+@schema
+class MaskClassification(dj.Manual):
+    """
+    Class methods not available outside of BCM pipeline environment
+    """
+    definition = """
+    # classification of segmented masks using CaImAn package
+    ->Segmentation
+    ---
+    mask_type                 : varchar(16)                  # classification of mask as soma or artifact
+    """
+
+    @property
+    def key_source(self):
+        return meso.MaskClassification.Type.proj(mask_type='type') & {'animal_id': 17797, 'segmentation_method': 6} & Scan
+
+    @classmethod
+    def fill(cls):
+        cls.insert(cls.key_source, ignore_extra_fields=True)
