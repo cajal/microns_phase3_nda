@@ -14,6 +14,7 @@ from scipy.special import iv
 from scipy import stats
 
 import datajoint as dj
+import matplotlib.pyplot as plt
 
 def em_nm_to_voxels_phase3(xyz, x_offset=31000, y_offset=500, z_offset=3150, inverse=False):
     """convert EM nanometers to neuroglancer voxels
@@ -225,8 +226,21 @@ def reshape_masks(mask_pixels, mask_weights, image_height, image_width):
 
     return masks
 
-def get_all_masks(field_key, mask_type=None):
-    """Returns an image_height x image_width x num_masks matrix with all masks."""
+def get_all_masks(field_key, mask_type=None, plot=False):
+    """Returns an image_height x image_width x num_masks matrix with all masks and plots the masks (optional).
+    Args:
+        field_key      (dict):        dictionary to uniquely identify a field (must contain the keys: "session", "scan_idx", "field")
+        mask_type      (str):         options: "soma" or "artifact". Specifies whether to restrict masks by classification. 
+                                        soma: restricts to masks classified as soma
+                                        artifact: restricts masks classified as artifacts
+        plot           (bool):        specify whether to plot masks
+        
+    Returns:
+        masks           (array):      array containing masks of dimensions image_height x image_width x num_masks  
+        
+        if plot=True:
+            matplotlib image    (array):        array of oracle responses interpolated to scan frequency: 10 repeats x 6 oracle clips x f response frames
+    """
     mask_rel = nda.Segmentation * nda.MaskClassification & field_key & [{'mask_type': mask_type} if mask_type is not None else {}]
 
     # Get masks
@@ -242,7 +256,29 @@ def get_all_masks(field_key, mask_type=None):
         mask_pixels, mask_weights, image_height, image_width
     )
 
+    if plot:
+        corr, avg = (nda.SummaryImages & field_key).fetch1('correlation', 'average')
+        image_height, image_width, num_masks = masks.shape
+        figsize = np.array([image_width, image_height]) / min(image_height, image_width)
+        fig = plt.figure(figsize=figsize * 7)
+        plt.imshow(corr*avg)
+
+        cumsum_mask = np.empty([image_height, image_width])
+        for i in range(num_masks):
+            mask = masks[:, :, i]
+
+            ## Compute cumulative mass (similar to caiman)
+            indices = np.unravel_index(
+                np.flip(np.argsort(mask, axis=None), axis=0), mask.shape
+            )  # max to min value in mask
+            cumsum_mask[indices] = np.cumsum(mask[indices] ** 2) / np.sum(mask ** 2)
+
+            ## Plot contour at desired threshold (with random color)
+            random_color = (np.random.rand(), np.random.rand(), np.random.rand())
+            plt.contour(cumsum_mask, [0.97], linewidths=0.8, colors=[random_color])
+
     return masks
+
 
 
 def fetch_oracle_raster(unit_key):
