@@ -13,6 +13,7 @@ from scipy.optimize import minimize_scalar
 from scipy.special import iv
 from scipy import stats
 
+import datajoint as dj
 
 def em_nm_to_voxels_phase3(xyz, x_offset=31000, y_offset=500, z_offset=3150, inverse=False):
     """convert EM nanometers to neuroglancer voxels
@@ -244,73 +245,32 @@ def get_all_masks(field_key):
     return masks
 
 
-def fit(directions, response):
-    """Fits a mixture of 2 von Mises separated by pi with equal width
+def fetch_oracle_raster(unit_key):
+    """Fetches the responses of the provided unit to the oracle trials
     Args:
-        directions     (array):    1d-array containing directions (radians)
-        response    (array):    1d-array of the same length containing responses
+        unit_key      (dict):        dictionary to uniquely identify a functional unit (must contain the keys: "session", "scan_idx", "unit_id") 
+        
     Returns:
-        success     (bool):     success of the bounded minimization
-        mu          (float):    center of the first von Mises distribution. the center of the second is mu + pi
-        p           (float):    weight of the first von Mises distribution. the weight of the second is (1-p)
-        kappa       (float):    dispersion of both von Mises distributions
+        oracle_score (float):        
+        responses    (array):        array of oracle responses interpolated to scan frequency: 10 repeats x 6 oracle clips x f response frames
     """
-    z = response.sum()
-    psi = 2 * directions
-    c = (np.cos(psi) * response).sum() / z
-    s = (np.sin(psi) * response).sum() / z
-    mu = np.arctan2(s, c) / 2
-    r = np.sqrt(c**2 + s**2)
-    k = lambda x: np.abs(1 - 2 * iv(1, x) / iv(0, x) / x - r)
-    res = minimize_scalar(k, bounds=(0.01, 100), method='bounded')
-    kappa = res.x
-    success = res.success
-    c = (np.cos(directions) * response).sum() / z
-    s = (np.sin(directions) * response).sum() / z
-    p = ((c*np.cos(mu) + s*np.sin(mu)) / iv(1, kappa) * iv(0, kappa) + 1) / 2
-    return success, mu, p, kappa
+    fps = (nda.Scan & unit_key).fetch1('fps') # get frame rate of scan
 
+    oracle_rel = (dj.U('condition_hash').aggr(nda.Trial & unit_key,n='count(*)',m='min(trial_idx)') & 'n=10') # get oracle clips
+    oracle_hashes = oracle_rel.fetch('KEY',order_by='m ASC') # get oracle clip hashes sorted temporally
 
-def concatenate_monet2(unit_key):
-    """Concatenates the Monet2 directional trial responses for the specified unit
-    Args:
-        unit_key (dict) dictionary to uniquely identify a functional unit (must contain the keys: "session", "scan_idx", "unit_id")
-    Returns: 
-        indices     (array): array of indices for Monet2 trials
-        directions (array): array of directions (radians) for Monet2 trials
-        responses  (array): array of unit response magnitudes for Monet2 trials
-    """
-    trace = (nda.Activity & unit_key).fetch1('trace')  # fetch activity trace for unit
-    
-    trial_keys = (nda.Trial() & nda.Monet2 & unit_key).fetch('KEY')
-    dirs, frames, acts = [], [], []
-    for trial in trial_keys:  # loop through all Monet2 trials for unit
-        start, end, directions = (nda.Trial * nda.Monet2 & trial).fetch1('start_idx', 'end_idx', 'directions', squeeze=True)
-        subtrial_edges = np.linspace(start, end, len(directions) + 1)
-        subtrial_centers = np.mean(np.vstack((subtrial_edges[:-1], subtrial_edges[1:])), axis=0)
-        f2d = interp1d(subtrial_centers, directions, kind='nearest', fill_value='extrapolate')
-        frames.append(np.arange(start, end + 1))
-        dirs.append(f2d(np.arange(start, end + 1)))
-        acts.append(trace[start: end + 1])
-    
-    indices = np.hstack(frames)
-    directions = np.hstack(dirs)/ 180 * np.pi
-    responses = np.hstack(acts)
-    return indices, directions, responses
+    frame_times_set = []
+    # iterate over oracle repeats (10 repeats)
+    for first_clip in (nda.Trial & oracle_hashes[0] & unit_key).fetch('trial_idx'): 
+        trial_block_rel = (nda.Trial & unit_key & f'trial_idx >= {first_clip} and trial_idx < {first_clip+6}') # uses the trial_idx of the first clip to grab subsequent 5 clips (trial_block) 
+        start_times, end_times = trial_block_rel.fetch('start_frame_time', 'end_frame_time', order_by='condition_hash DESC') # grabs start time and end time of each clip in trial_block and orders by condition_hash to maintain order across scans
+        frame_times = [np.linspace(s, e , np.round(fps * (e - s)).astype(int)) for s, e in zip(start_times, end_times)] # generate time vector between start and end times according to frame rate of scan
+        frame_times_set.append(frame_times)
 
-def von_mises_pdf(directions, responses):
-    """ Computes the von mises probability density function for provided directions and responses
-    
-    Args:
-        directions (array): array of directions (radians) for Monet2 trials
-        responses  (array): array of unit response magnitudes for Monet2 trials 
-    Returns:
-        unique directions (array): array containing the set of unique directional trials
-        von mises pdf(array): von mises fit for provided directions and responses
-    """
-    _, mu, p, kappa = fit(directions, responses)
-    unique_directions = sorted(list(set(directions)))
-    vm1 = stats.vonmises.pdf(x=unique_directions, loc=mu, kappa=kappa)
-    vm2 = stats.vonmises.pdf(x=unique_directions, loc=mu+np.pi, kappa=kappa)
-    pdf = p*vm1 + (1-p)*vm2
-    return unique_directions, pdf
+    trace, fts, delay = ((nda.Activity & unit_key) * nda.FrameTimes * nda.ScanUnit).fetch1('trace', 'frame_times', 'ms_delay') # fetch trace delay and frame times for interpolation
+    f2a = interp1d(fts + delay/1000, trace) # create trace interpolator with unit specific time delay
+    oracle_traces = np.array([f2a(ft) for ft in frame_times_set]) # interpolate oracle times to match the activity trace
+    oracle_traces -= np.min(oracle_traces,axis=(1,2),keepdims=True) # normalize the oracle traces
+    oracle_traces /= np.max(oracle_traces,axis=(1,2),keepdims=True) # normalize the oracle traces
+    oracle_score = (nda.Oracle & unit_key).fetch1('pearson') # fetch oracle score
+    return oracle_traces, oracle_score
