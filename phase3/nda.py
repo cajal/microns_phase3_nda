@@ -60,6 +60,32 @@ class Scan(dj.Manual):
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
 
+@schema
+class ScanInclude(dj.Lookup):
+    """
+    Class methods not available outside of BCM pipeline environment
+    """
+    definition = """
+    # Scans suitable for analysis
+    ->Scan
+    """
+
+    contents = np.array([
+        [4, 7],
+        [5, 6],
+        [5, 7],
+        [6, 2],
+        [6, 4],
+        [6, 6],
+        [6, 7],
+        [7, 3],
+        [7, 4],
+        [7, 5],
+        [8, 5],
+        [9, 3],
+        [9, 4],
+        [9, 6]])
+
 
 @schema
 class Field(dj.Manual):
@@ -88,6 +114,7 @@ class Field(dj.Manual):
     @classmethod
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
+
 @schema
 class RawManualPupil(dj.Manual):
     """
@@ -151,7 +178,7 @@ class Treadmill(dj.Manual):
     
 
 @schema
-class DepthTimes(dj.Manual):
+class FrameTimes(dj.Manual):
     """
     Class methods not available outside of BCM pipeline environment
     """
@@ -159,9 +186,8 @@ class DepthTimes(dj.Manual):
     # scan times per frame (in seconds, relative to the start of the scan)
     ->Scan
     ---
-    field1_times        : longblob            # stimulus frame times for field 1 of each scan, len = nframes
+    frame_times        : longblob            # stimulus frame times for field 1 of each scan, (len = nframes)
     ndepths             : smallint           # number of imaging depths recorded for each scan
-    depth_times         : longblob            # stimulus frame times interleaved by depth, len = nframes x ndepths
     """
 
 @schema
@@ -173,7 +199,7 @@ class Stimulus(dj.Manual):
     # Stimulus presented
     -> Scan
     ---
-    movie                : longblob                     # stimulus images synchronized with field 1 frame times (F x H x W matrix)
+    movie                : longblob                     # stimulus images synchronized with field 1 frame times (H x W X F matrix)
     """
 
 
@@ -192,6 +218,7 @@ class Trial(dj.Manual):
     frame_times          : longblob                     # full vector of stimulus frame times relative to scan start (seconds)
     condition_hash       : char(20)                     # 120-bit hash (The first 20 chars of MD5 in base64)
     """
+
 @schema
 class Clip(dj.Manual):
     definition = """
@@ -296,9 +323,9 @@ class Stack(dj.Manual):
     stack_session        : smallint                     # session index for the mouse
     stack_idx            : smallint                     # id of the stack
     ---
-    motor_z                    : float                        # (um) center of volume in the motor coordinate system (cortex is at 0)
-    motor_y                    : float                        # (um) center of volume in the motor coordinate system
-    motor_x                    : float                        # (um) center of volume in the motor coordinate system
+    motor_z                    : float                  # (um) center of volume in the motor coordinate system (cortex is at 0)
+    motor_y                    : float                  # (um) center of volume in the motor coordinate system
+    motor_x                    : float                  # (um) center of volume in the motor coordinate system
     px_depth             : smallint                     # number of slices
     px_height            : smallint                     # lines per frame
     px_width             : smallint                     # pixels per line
@@ -436,11 +463,11 @@ class ScanUnit(dj.Manual):
     unit_id                 : int               # unique per scan
     ---
     -> Fluorescence
-    um_x                : smallint      # x-coordinate of centroid in motor coordinate system (microns)
-    um_y                : smallint      # y-coordinate of centroid in motor coordinate system (microns)
-    um_z                : smallint      # z-coordinate of mask relative to surface of the cortex (mirons)
-    px_x                : smallint      # x-coordinate of centroid in the frame (pixels)
-    px_y                : smallint      # y-coordinate of centroid in the frame (pixels)
+    um_x                : smallint      # centroid x motor coordinates (microns)
+    um_y                : smallint      # centroid y motor coordinates (microns)
+    um_z                : smallint      # centroid z motor coordinates (microns)
+    px_x                : smallint      # centroid x pixel coordinate in field (pixels
+    px_y                : smallint      # centroid y pixel coordinate in field (pixels
     ms_delay            : smallint      # delay from start of frame (field 1 pixel 1) to recording ot his unit (milliseconds)
     """
     
@@ -486,9 +513,9 @@ class StackUnit(dj.Manual):
     -> Registration
     -> ScanUnit
     ---
-    motor_x         : float    # centroid x stack coordinates with motor offset (microns)
-    motor_y         : float    # centroid y stack coordinates with motor offset (microns)
-    motor_z         : float    # centroid z stack coordinates with motor offset (microns)
+    motor_x            : float    # centroid x stack coordinates with motor offset (microns)
+    motor_y            : float    # centroid y stack coordinates with motor offset (microns)
+    motor_z            : float    # centroid z stack coordinates with motor offset (microns)
     stack_x            : float    # centroid x stack coordinates (microns)
     stack_y            : float    # centroid y stack coordinates (microns)
     stack_z            : float    # centroid z stack coordinates (microns)
@@ -515,6 +542,27 @@ class AreaMembership(dj.Manual):
     """
 
 @schema
+class MaskClassification(dj.Manual):
+    """
+    Class methods not available outside of BCM pipeline environment
+    """
+    definition = """
+    # classification of segmented masks using CaImAn package
+    ->Segmentation
+    ---
+    mask_type                 : varchar(16)                  # classification of mask as soma or artifact
+    """
+
+    @property
+    def key_source(self):
+        return meso.MaskClassification.Type.proj(mask_type='type') & {'animal_id': 17797, 'segmentation_method': 6} & Scan
+
+    @classmethod
+    def fill(cls):
+        cls.insert(cls.key_source, ignore_extra_fields=True)
+
+
+@schema
 class Oracle(dj.Manual):
     """
     Class methods not available outside of BCM pipeline environment
@@ -536,65 +584,6 @@ class Oracle(dj.Manual):
     def fill(cls):
         cls.insert(cls.key_source, ignore_extra_fields=True)
 
-@schema
-class ScanInclude(dj.Lookup):
-    """
-    Class methods not available outside of BCM pipeline environment
-    """
-    definition = """
-    # Scans suitable for analysis
-    ->Scan
-    """
-
-    contents = np.array([
-        [4, 7],
-        [5, 6],
-        [5, 7],
-        [6, 2],
-        [6, 4],
-        [6, 6],
-        [6, 7],
-        [7, 3],
-        [7, 4],
-        [7, 5],
-        [8, 5],
-        [9, 3],
-        [9, 4],
-        [9, 6]])
 
 
 
-
-@schema
-class FrameTimes(dj.Manual):
-    """
-    Class methods not available outside of BCM pipeline environment
-    """
-    definition = """
-    # scan times per frame (in seconds, relative to the start of the scan)
-    ->Scan
-    ---
-    frame_times        : longblob            # stimulus frame times for field 1 of each scan, (len = nframes)
-    ndepths             : smallint           # number of imaging depths recorded for each scan
-    """
-
-
-@schema
-class MaskClassification(dj.Manual):
-    """
-    Class methods not available outside of BCM pipeline environment
-    """
-    definition = """
-    # classification of segmented masks using CaImAn package
-    ->Segmentation
-    ---
-    mask_type                 : varchar(16)                  # classification of mask as soma or artifact
-    """
-
-    @property
-    def key_source(self):
-        return meso.MaskClassification.Type.proj(mask_type='type') & {'animal_id': 17797, 'segmentation_method': 6} & Scan
-
-    @classmethod
-    def fill(cls):
-        cls.insert(cls.key_source, ignore_extra_fields=True)
