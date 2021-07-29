@@ -225,9 +225,9 @@ def reshape_masks(mask_pixels, mask_weights, image_height, image_width):
 
     return masks
 
-def get_all_masks(field_key):
+def get_all_masks(field_key, mask_type=None):
     """Returns an image_height x image_width x num_masks matrix with all masks."""
-    mask_rel = nda.Segmentation & field_key
+    mask_rel = nda.Segmentation * nda.MaskClassification & field_key & [{'mask_type': mask_type} if mask_type is not None else {}]
 
     # Get masks
     image_height, image_width = (nda.Field & field_key).fetch1(
