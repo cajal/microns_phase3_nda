@@ -293,7 +293,7 @@ def fetch_oracle_raster(unit_key):
     fps = (nda.Scan & unit_key).fetch1('fps') # get frame rate of scan
 
     oracle_rel = (dj.U('condition_hash').aggr(nda.Trial & unit_key,n='count(*)',m='min(trial_idx)') & 'n=10') # get oracle clips
-    oracle_hashes = oracle_rel.fetch('KEY',order_by='m ASC') # get oracle clip hashes sorted temporally
+    oracle_hashes,_  = oracle_rel.fetch('KEY','m',order_by='m ASC') # get oracle clip hashes sorted temporally
 
     frame_times_set = []
     # iterate over oracle repeats (10 repeats)
