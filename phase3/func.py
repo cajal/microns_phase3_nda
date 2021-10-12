@@ -11,7 +11,19 @@ from coregister.utils import em_nm_to_voxels
 from scipy.interpolate import interp1d
 from scipy.optimize import minimize_scalar
 from scipy.special import iv
-from scipy import stats
+from scipy import stats, signal
+from scipy.ndimage import convolve1d
+from stimulus.stimulus import BehaviorSync,Sync
+import cv2
+from stimulus import stimulus
+import tqdm as tqdm
+from pipeline import experiment, stack, meso, fuse
+from pipeline.utils import performance
+import scanreader
+from stimline import tune
+import mpy 
+import io 
+import imageio 
 
 import datajoint as dj
 import matplotlib.pyplot as plt
@@ -43,6 +55,9 @@ def em_nm_to_voxels_phase3(xyz, x_offset=31000, y_offset=500, z_offset=3150, inv
 
     return vxyz
 
+def make_movie(t,interpolated_movie,target_hz):
+    frame = interpolated_movie[:,:,int(round(t*target_hz))]
+    return np.repeat(frame[:, :, np.newaxis], 3, axis=2)
 
 def get_grid(field_key, desired_res=1):
     """ Get registered grid for this registration. """
@@ -310,3 +325,198 @@ def fetch_oracle_raster(unit_key):
     oracle_traces /= np.max(oracle_traces,axis=(1,2),keepdims=True) # normalize the oracle traces
     oracle_score = (nda.Oracle & unit_key).fetch1('pearson') # fetch oracle score
     return oracle_traces, oracle_score
+
+def get_timing_offset(key):
+    frame_times = (Sync() & key).fetch1('frame_times')
+    frame_times_beh = (BehaviorSync() & key).fetch1('frame_times')
+    photodiode_zero = np.nanmedian(frame_times - frame_times_beh)
+    return photodiode_zero
+
+def slice_array(array, axis, idx=None, start=None, end=None):
+    idx_slice = [slice(None)] * array.ndim
+    if (start is None) or (end is None):
+        idx_slice[axis] = idx
+    else:
+        idx_slice[axis] = slice(start,end)
+    return array[tuple(idx_slice)]
+
+
+def resize_movie(movie, target_size, time_axis=2):
+    new_shape = list(target_size)
+    new_shape.insert(time_axis, movie.shape[time_axis])
+    new_movie = np.zeros(new_shape)
+    # This structure can be used to select slices from a dynamically specified axis
+    # Use by setting idx_slice[dynamic_axis] = idx OR slice(start,end) and then array[tuple(idx_slice)]
+    idx_slice = [slice(None)] * movie.ndim
+    for i in range(movie.shape[time_axis]):
+        idx_slice[time_axis] = i
+        # cv2 uses height x width reversed compared to numpy, target_size is flipped
+        # INTER_AREA interpolation appears best for downsample and upsample
+        # replace with bilinear interpolation
+        new_movie[tuple(idx_slice)] = cv2.resize(movie[tuple(idx_slice)], 
+                                                 target_size[::-1], interpolation=cv2.INTER_AREA)
+        
+        
+    return new_movie
+
+
+def hamming_filter(movie, time_axis, source_times, target_times, filter_size=20):
+    source_hz = 1/np.median(np.diff(source_times))
+    target_hz = 1/np.median(np.diff(target_times))
+    scipy_ham = signal.firwin(filter_size, cutoff=target_hz/2, window="hamming", fs=source_hz)
+    filtered_movie = convolve1d(movie, scipy_ham, axis=time_axis)
+    return filtered_movie
+
+
+
+def generate_stimulus_avi(key):
+    time_axis = 2
+    target_size = (90, 160)
+    full_stimulus = None
+    full_flips = None
+
+    key['animal_id'] = 17797
+    print(key)
+    scan_title = '_'.join(['-'.join((str(k),str(v))) for (k,v) in key.items()])
+    scan_times = (stimulus.Sync & key).fetch1('frame_times').squeeze()
+    num_depths = np.unique((meso.ScanInfo.Field & key).fetch('z')).shape[0]
+    target_hz = 30
+    trial_data = ((stimulus.Trial & key) * stimulus.Condition).fetch('KEY', 'stimulus_type', order_by='trial_idx ASC')
+    for trial_key,stim_type in zip(tqdm(trial_data[0]), trial_data[1]):
+        
+        if stim_type == 'stimulus.Clip':
+            djtable = ((stimulus.Trial & trial_key) * stimulus.Condition * stimulus.Clip * stimulus.Movie.Clip * stimulus.Movie)
+            flip_times, compressed_clip, skip_time, cut_after,frame_rate = djtable.fetch1('flip_times', 'clip', 'skip_time', 'cut_after','frame_rate')
+            flip_times = flip_times[0]
+            # convert to grayscale and stack to movie in width x height x time
+            temp_vid = imageio.get_reader(io.BytesIO(compressed_clip.tobytes()), 'ffmpeg')
+            # NOTE: Used to use temp_vid.get_length() but new versions of ffmpeg return inf with this function
+            temp_vid_length = temp_vid.count_frames()
+            movie = np.stack([temp_vid.get_data(i).mean(axis=-1) for i in range(temp_vid_length)], axis=2)
+            assumed_clip_fps = frame_rate
+            start_idx = int(np.float(skip_time) * assumed_clip_fps)
+            print(trial_key)
+            end_idx = int(start_idx + (np.float(cut_after) * assumed_clip_fps))
+            times = np.linspace(flip_times[0],flip_times[-1], (flip_times[-1] - flip_times[0])*target_hz)
+            movie = movie[:,:,start_idx:end_idx]
+            movie = resize_movie(movie, target_size, time_axis)
+            movie = hamming_filter(movie, time_axis, flip_times, times)
+            full_stimulus = np.concatenate((full_stimulus, movie), axis=time_axis) if full_stimulus is not None else movie
+            full_flips = np.concatenate((full_flips, flip_times.squeeze())) if full_flips is not None else flip_times.squeeze()
+        
+        elif stim_type == 'stimulus.Monet2':
+            flip_times, movie = ((stimulus.Trial & trial_key) * stimulus.Condition * stimulus.Monet2).fetch1('flip_times', 'movie')
+            flip_times = flip_times[0]
+            movie = movie[:,:,0,:]  
+            movie = resize_movie(movie, target_size, time_axis)
+            times = np.linspace(flip_times[0],flip_times[-1],(flip_times[-1] - flip_times[0])*target_hz)
+            movie = hamming_filter(movie, time_axis, flip_times, times)
+            full_stimulus = np.concatenate((full_stimulus, movie), axis=time_axis) if full_stimulus is not None else movie
+            full_flips = np.concatenate((full_flips, flip_times.squeeze())) if full_flips is not None else flip_times.squeeze()
+        
+        elif stim_type == 'stimulus.Trippy':
+            flip_times, movie = ((stimulus.Trial & trial_key) * stimulus.Condition * stimulus.Trippy).fetch1('flip_times', 'movie')
+            flip_times = flip_times[0]
+            movie = resize_movie(movie, target_size, time_axis)
+            times = np.linspace(flip_times[0],flip_times[-1],(flip_times[-1] - flip_times[0])*target_hz)
+            movie = hamming_filter(movie, time_axis, flip_times, times)
+            full_stimulus = np.concatenate((full_stimulus, movie), axis=time_axis) if full_stimulus is not None else movie
+            full_flips = np.concatenate((full_flips, flip_times.squeeze())) if full_flips is not None else flip_times.squeeze()
+        
+        else:
+            raise Exception(f'Error: stimulus type {stim_type} not understood')
+
+    pre_blank_length = full_flips[0] - scan_times[0]
+    post_blank_length = scan_times[-1] - full_flips[-1]
+    pre_nframes = np.ceil(pre_blank_length*target_hz)
+    h,w,t = full_stimulus.shape
+    times = np.linspace(full_flips[0],full_flips[-1],int(np.ceil((full_flips[-1] - full_flips[0])*target_hz)))
+
+    interpolated_movie = np.zeros((h, w, int(np.ceil(scan_times[-1] - scan_times[0])*target_hz)))
+
+    for t_time,i in zip(tqdm(times), range(len(times))):
+        idx = (full_flips < t_time).sum() - 1
+        if(idx < 0):
+            continue
+        myinterp = interp1d(full_flips[idx:idx+2], full_stimulus[:,:,idx:idx+2], axis=2)
+        interpolated_movie[:,:,int(i+pre_nframes)] = myinterp(t_time)
+
+        # NOTE : For compressed version, use the default settings associated with mp4 (libx264)
+        #        For the lossless version, use PNG codec and .avi output
+    
+    
+    overflow = np.where(interpolated_movie > 255)
+    underflow = np.where(interpolated_movie < 0)
+    interpolated_movie[overflow[0],overflow[1],overflow[2]] = 255
+    interpolated_movie[underflow[0],underflow[1],underflow[2]] = 0
+    f = lambda t: make_movie(t,interpolated_movie,target_hz)
+    clip = mpy.VideoClip(f, duration=(interpolated_movie.shape[-1]/target_hz))
+
+    clip.write_videofile(f"stimulus_17797_{key['session']}_{key['scan_idx']}_v3_compressed.mp4", codec='libx264', fps=target_hz)
+    clip.write_videofile(f"stimulus_17797_{key['session']}_{key['scan_idx']}_v3.avi", fps=target_hz, codec='png')
+
+def correct_scan(i,key):
+    scan_filename = (experiment.Scan & key).local_filenames_as_wildcard
+    scan = scanreader.read_scan(scan_filename)
+    nframes = scan.num_frames
+    if experiment.Session.PMTFilterSet() & key & {'pmt_filter_set': '3P1 green-THG'}:
+        key['channel'] = 2
+    else:
+        key['channel'] = 1
+    pipe = (fuse.MotionCorrection() & key).module 
+
+    # Map: Correct scan in parallel
+    f = performance.parallel_correct_scan # function to map
+    raster_phase = (pipe.RasterCorrection() & key).fetch1('raster_phase')
+    fill_fraction = (pipe.ScanInfo() & key).fetch1('fill_fraction')
+    y_shifts, x_shifts = (pipe.MotionCorrection() & key).fetch1('y_shifts', 'x_shifts')
+    kwargs = {'raster_phase': raster_phase, 'fill_fraction': fill_fraction,
+            'y_shifts': y_shifts, 'x_shifts': x_shifts}
+    results = performance.map_frames(f, scan, field_id=i,
+                                    channel=0, kwargs=kwargs)
+
+    # Reduce: Rescale and save as int16
+    height, width, _ = results[0][1].shape
+    corrected_scan = np.zeros([height, width, nframes], dtype=np.int16)
+    max_abs_intensity = max(np.abs(c).max() for f, c in results)
+    scale = max_abs_intensity / (2 ** 15 - 1)
+    for frames, chunk in results:
+        corrected_scan[:, :, frames] = (chunk / scale).astype(np.int16)
+    
+    return corrected_scan
+
+
+def generate_functional_scan(key):
+    # Create a composite by interleaving fields
+    # Read scan
+    print('Reading scan...')
+    scan_filename = (experiment.Scan & key).local_filenames_as_wildcard
+    scan = scanreader.read_scan(scan_filename)
+    num_fields = (tune.CaMovie & key).fetch('field', order_by="field DESC", limit=1)[0]
+    nframes = scan.num_frames
+    height = scan._page_height
+    width = scan._page_width
+    composite = np.zeros([num_fields * nframes, height, width], dtype=np.uint16)
+
+    for i in range(num_fields):
+        # Get some params
+        
+        
+        corrected_scan = correct_scan(i,key)
+        composite[i::num_fields] = corrected_scan
+    
+    
+    return composite
+
+
+def generate_stack(key,filename):
+    from tifffile import imsave
+
+    # Create a composite interleaving channels
+    height, width, depth = (stack.CorrectedStack() & key).fetch1('px_height', 'px_width', 'px_depth')
+    num_channels = (stack.StackInfo() & (stack.CorrectedStack() & key)).fetch1('nchannels')
+    composite = np.zeros([num_channels * depth, height, width], dtype=np.float32)
+    for i in range(num_channels):
+        composite[i::num_channels] = (stack.CorrectedStack() & key).get_stack(i + 1)
+
+    return composite
