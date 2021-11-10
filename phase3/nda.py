@@ -4,7 +4,7 @@ Phase3 nda schema classes and methods
 import numpy as np
 import datajoint as dj
 
-schema = dj.schema('ramosaj_mp3_nda_test', create_tables=True)
+schema = dj.schema('microns_phase3_nda', create_tables=True)
 schema.spawn_missing_classes()
 
 import coregister.solve as cs
