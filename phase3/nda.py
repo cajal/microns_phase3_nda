@@ -276,7 +276,7 @@ class Treadmill(dj.Manual):
     
 
 @schema
-class FrameTimes(dj.Manual):
+class ScanTimes(dj.Manual):
     """
     Class methods not available outside of BCM pipeline environment
     """
@@ -397,7 +397,7 @@ class Trial(dj.Manual):
     end_idx              : int unsigned                 # index of field 1 scan frame at end of trial
     start_frame_time     : double                       # start time of stimulus frame relative to scan start (seconds)
     end_frame_time       : double                       # end time of stimulus frame relative to scan start (seconds)
-    frame_times          : longblob                     # full vector of stimulus frame times relative to scan start (seconds)
+    stim_times           : longblob                     # full vector of stimulus frame times relative to scan start (seconds)
     condition_hash       : char(20)                     # 120-bit hash (The first 20 chars of MD5 in base64)
     """
     @property 
