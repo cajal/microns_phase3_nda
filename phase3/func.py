@@ -508,7 +508,8 @@ def correct_scan(i,key):
     """
     Raster and motion-correct field i in scan specified by key
     Args:
-        i:int: field to raster and motion correct 
+        i:int:           field to raster and motion correct 
+        key:dictionary   scan to correct
     Returns:
         corrected_scan:np.array   field i raster and motion-corrected
     
@@ -544,6 +545,16 @@ def correct_scan(i,key):
 
 
 def generate_functional_scan(key,filename):
+    """
+        Creates composite by correcting each field and interleaving 
+        Args:
+            key        dictionary      Scan to generate 
+            filename   string          Filename to eventually save
+    
+
+
+
+    """
     # Create a composite by interleaving fields
     # Read scan
     from skimage.external.tifffile import imsave
@@ -571,6 +582,15 @@ def generate_functional_scan(key,filename):
 
 
 def generate_stack(key,filename):
+    """
+    Grabs stack from the database and saves in filename.tif
+
+    Args:
+        key         dictionary      Stack to generate
+        filename    string          filename to save tiff file to    
+
+    
+    """
     from skimage.external.tifffile import imsave
 
     # Create a composite interleaving channels
