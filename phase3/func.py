@@ -327,12 +327,33 @@ def fetch_oracle_raster(unit_key):
     return oracle_traces, oracle_score
 
 def get_timing_offset(key):
+    """
+    Fetches timing offset between behavior and stimulus computers.
+    Args:
+        key: dictionary specifying the scan 
+    Returns:
+        photodiode_zero: float indicating the offset between stimulus and behavior time keeping
+
+
+    
+    
+    """
     frame_times = (Sync() & key).fetch1('frame_times')
     frame_times_beh = (BehaviorSync() & key).fetch1('frame_times')
     photodiode_zero = np.nanmedian(frame_times - frame_times_beh)
     return photodiode_zero
 
 def slice_array(array, axis, idx=None, start=None, end=None):
+    """
+    Takes array and retrieves items between start and end indices at axis 
+    Args:
+        array:      numpy array 
+        axis:int    axis to get values from 
+        start:int   start index 
+        end:int     end index
+    
+    
+    """
     idx_slice = [slice(None)] * array.ndim
     if (start is None) or (end is None):
         idx_slice[axis] = idx
@@ -342,6 +363,16 @@ def slice_array(array, axis, idx=None, start=None, end=None):
 
 
 def resize_movie(movie, target_size, time_axis=2):
+    """
+    Resizes movie to target_size using cv2.resize (inter area interpolation)
+    
+    Args:
+        movie:np.array                 movie to resize 
+        target_size:array-like         array-like object representing target size (HxW)
+        time_axis:int                  integer indicated which axis represents time (defaults to 2) 
+    
+    
+    """
     new_shape = list(target_size)
     new_shape.insert(time_axis, movie.shape[time_axis])
     new_movie = np.zeros(new_shape)
@@ -361,6 +392,16 @@ def resize_movie(movie, target_size, time_axis=2):
 
 
 def hamming_filter(movie, time_axis, source_times, target_times, filter_size=20):
+    """
+    Hamming filter to change framerate of movie from source_times framerate to target_times framerate at time_axis 
+    Args:
+        movie:np.array              movie to filter 
+        time_axis:int               integer representing time axis of movie 
+        source_times:np.array       numpy array representing timestamps of frames in movie 
+        target_times:np.array       numpy array representing target timestamps of frames in movie 
+        filter_size:int             integer representing size of hamming window
+    
+    """
     source_hz = 1/np.median(np.diff(source_times))
     target_hz = 1/np.median(np.diff(target_times))
     scipy_ham = signal.firwin(filter_size, cutoff=target_hz/2, window="hamming", fs=source_hz)
@@ -370,6 +411,16 @@ def hamming_filter(movie, time_axis, source_times, target_times, filter_size=20)
 
 
 def generate_stimulus_avi(key):
+    """
+    Generates an avi of the stimulus from frames stored in the database 
+    Args:
+        key:dict Scan to generate the avis from 
+    
+    Returns:
+        None, writes stimulus AVI locally
+    
+    
+    """
     time_axis = 2
     target_size = (90, 160)
     full_stimulus = None
@@ -377,9 +428,7 @@ def generate_stimulus_avi(key):
 
     key['animal_id'] = 17797
     print(key)
-    scan_title = '_'.join(['-'.join((str(k),str(v))) for (k,v) in key.items()])
     scan_times = (stimulus.Sync & key).fetch1('frame_times').squeeze()
-    num_depths = np.unique((meso.ScanInfo.Field & key).fetch('z')).shape[0]
     target_hz = 30
     trial_data = ((stimulus.Trial & key) * stimulus.Condition).fetch('KEY', 'stimulus_type', order_by='trial_idx ASC')
     for trial_key,stim_type in zip(tqdm(trial_data[0]), trial_data[1]):
@@ -456,6 +505,14 @@ def generate_stimulus_avi(key):
     clip.write_videofile(f"stimulus_17797_{key['session']}_{key['scan_idx']}_v3.avi", fps=target_hz, codec='png')
 
 def correct_scan(i,key):
+    """
+    Raster and motion-correct field i in scan specified by key
+    Args:
+        i:int: field to raster and motion correct 
+    Returns:
+        corrected_scan:np.array   field i raster and motion-corrected
+    
+    """
     scan_filename = (experiment.Scan & key).local_filenames_as_wildcard
     scan = scanreader.read_scan(scan_filename)
     nframes = scan.num_frames
@@ -486,16 +543,16 @@ def correct_scan(i,key):
     return corrected_scan
 
 
-def generate_functional_scan(key):
+def generate_functional_scan(key,filename):
     # Create a composite by interleaving fields
     # Read scan
+    from skimage.external.tifffile import imsave
     print('Reading scan...')
     scan_filename = (experiment.Scan & key).local_filenames_as_wildcard
     scan = scanreader.read_scan(scan_filename)
-    num_fields = (tune.CaMovie & key).fetch('field', order_by="field DESC", limit=1)[0]
+    num_fields = (meso.ScanInfo.Field & key).fetch('field', order_by="field DESC", limit=1)[0]
     nframes = scan.num_frames
-    height = scan._page_height
-    width = scan._page_width
+    height,width = (meso.ScanInfo().Field & key & 'field = 1').fetch1('px_height','px_width')
     composite = np.zeros([num_fields * nframes, height, width], dtype=np.uint16)
 
     for i in range(num_fields):
@@ -503,14 +560,18 @@ def generate_functional_scan(key):
         
         
         corrected_scan = correct_scan(i,key)
-        composite[i::num_fields] = corrected_scan
+        over = np.where(corrected_scan > 65535)
+        under = np.where(corrected_scan < 0)
+        corrected_scan[under[0],under[1],under[2]] = 0 
+        corrected_scan[over[0],over[1],over[2]] = 65535
+        composite[i::num_fields] = np.move_axis(corrected_scan,2,0)
     
+    imsave(filename,composite)
     
-    return composite
 
 
 def generate_stack(key,filename):
-    from tifffile import imsave
+    from skimage.external.tifffile import imsave
 
     # Create a composite interleaving channels
     height, width, depth = (stack.CorrectedStack() & key).fetch1('px_height', 'px_width', 'px_depth')
@@ -519,4 +580,4 @@ def generate_stack(key,filename):
     for i in range(num_channels):
         composite[i::num_channels] = (stack.CorrectedStack() & key).get_stack(i + 1)
 
-    return composite
+    imsave(filename,composite)

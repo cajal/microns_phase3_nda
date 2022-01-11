@@ -188,7 +188,7 @@ class ManualPupil(dj.Manual):
         for key in cls.key_source:
             stored_pupilinfo = (RawManualPupil() & key).fetch1()
             pupil_times = stored_pupilinfo['pupil_times']
-            frame_times,ndepths = (FrameTimes() & key).fetch1('frame_times','ndepths')
+            frame_times,ndepths = (ScanTimes()  & key).fetch1('frame_times','ndepths')
             top_frame_scan_times_beh_clock = frame_times[::ndepths]
 
             if((key['session'] == 4) and (key['scan_idx']==9)):
@@ -258,7 +258,7 @@ class Treadmill(dj.Manual):
             tread_interp = interp1d(tread_time, tread_vel, kind='linear', bounds_error=False, fill_value=np.nan)
             tread_time = tread_time.astype(np.float)
             tread_vel = tread_vel.astype(np.float)
-            frame_times,ndepths = (FrameTimes() & key).fetch1('frame_times','ndepths')
+            frame_times,ndepths = (ScanTimes()  & key).fetch1('frame_times','ndepths')
             if((key['session'] == 4) and (key['scan_idx'] == 9)):
                 top_frame_time = frame_times[::ndepths][:-1]
             else:
@@ -435,7 +435,7 @@ class Trial(dj.Manual):
                     if(data[idx-1]['end_idx'] == start_index):
                         print('ding')
                         t0 = data[idx-1]
-                        med = (start_time  +t0['end_frame_time'])/2
+                        med = start_time
                         nearest_frame_start = np.argmin(np.abs(field1_pixel0 - med))
                         data[idx-1]['end_idx'] = nearest_frame_start-1
                         start_index = nearest_frame_start
@@ -898,49 +898,6 @@ class Oracle(dj.Manual):
     @classmethod
     def fill(cls):
         cls.insert(cls.key_source, **params)
-
-
-
-@schema
-class ScanHash(dj.Manual):
-    definition = """
-    
-    scan_id     :   bigint       #
-    --- 
-    -> Scan
-    """
-    @property
-    def key_source(cls):
-        return Scan() 
-    
-    def fill(cls):
-        for key in cls.key_source :
-            bin_animal_id = bin(key['animal_id'][2:])
-            bin_session = bin(key['session'][2:])
-
-            if(len(bin_session) < 4):
-                bin_session = '0'*(4-len(bin_session)) + bin_session
-            bin_scan = bin(key['session'][2:])
-
-            if(len(bin_scan < 4)):
-                bin_scan = '0'*(4-len(bin_scan)) + bin_scan
-            
-            scan_id = (bin_animal_id << 8) + (bin_session << 4) + bin_scan
-            cls.insert1({'scan_id':scan_id,**key},**params)
-        
-    
-
-    def decode(scan_id):
-        animal_id_extract = ((2**15)-1) << 8
-        session_extract = ((2**4)-1) << 4
-        scan_extract = ((2**4)-1)
-        
-
-        animal_id = (scan_id['animal_id'] & animal_id_extract) >> 8
-        session = (scan_id['animal_id'] & session_extract) >> 4
-        scan_idx = scan_id['animal_id'] & scan_extract
-
-        return {'animal_id':animal_id,'session':session,'scan_idx':scan_idx}
 
 
         
