@@ -1,6 +1,7 @@
 """
 Phase3 nda schema classes and methods
 """
+from this import d
 import numpy as np
 import datajoint as dj
 
@@ -20,6 +21,8 @@ from pipeline import stack
 from stimline import tune
 import math
 import io 
+import hashlib
+import json
 
 params = {'ignore_extra_fields':True,'skip_duplicates':True}
 
@@ -898,6 +901,33 @@ class Oracle(dj.Manual):
     @classmethod
     def fill(cls):
         cls.insert(cls.key_source, **params)
+
+@schema 
+class ScanHash(dj.Manual):
+    """
+    Assign hash to a scan-id 
+    
+    """
+
+    definition = """
+    -> Scan
+    ---
+    hash                : varchar(64)                   # hash for scan
+    
+    """
+
+    @property 
+    def key_source(self):
+        return Scan 
+    
+    @classmethod 
+    def fill(self):
+        for key in self.key_source:
+            unicode_json = json.dumps(key).encode()
+            hash = hashlib.sha256(unicode_json)
+            self.insert({**key,'hash':hash.hexdigest()})
+
+
 
 
         
