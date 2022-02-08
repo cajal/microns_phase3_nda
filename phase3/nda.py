@@ -193,7 +193,8 @@ class ManualPupil(dj.Manual):
             pupil_times = stored_pupilinfo['pupil_times']
             frame_times,ndepths = (ScanTimes()  & key).fetch1('frame_times','ndepths')
             top_frame_scan_times_beh_clock = frame_times[::ndepths]
-
+            
+            ## small note about 4-9: the scan was stopped prematurely, so the length needs to be corrected as a result.
             if((key['session'] == 4) and (key['scan_idx']==9)):
                 top_frame_scan_times_beh_clock = top_frame_scan_times_beh_clock[:-1]
             
