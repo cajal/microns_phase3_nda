@@ -649,7 +649,8 @@ class Stack(dj.Manual):
     
     @property
     def key_source(self):
-        return stack.CorrectedStack.proj(..., stack_session='session') & self.platinum_stack
+        return stack.CorrectedStack.proj(..., stack_session='session',
+                          motor_z = 'z', motor_y = 'y', motor_x = 'x') & self.platinum_stack
     
     @classmethod
     def fill(cls):
