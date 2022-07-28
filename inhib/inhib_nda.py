@@ -24,7 +24,7 @@ import hashlib
 import json
 
 
-schema = dj.schema('21617_release_nda', create_tables=False)
+schema = dj.schema('release_nda_db', create_tables=False, create_schema=False)
 schema.spawn_missing_classes()
 
 params = {'ignore_extra_fields':True,'skip_duplicates':True}
