@@ -2,11 +2,13 @@ import cv2
 import numpy as np
 from scipy import stats, signal
 from scipy.ndimage import convolve1d
-from stimulus.stimulus import BehaviorSync,Sync
 from inhib import inhib_nda as nda
 import matplotlib.pyplot as plt
 import datajoint as dj
 from scipy.interpolate import interp1d
+
+# private BCM schemas
+# from stimulus.stimulus import BehaviorSync,Sync
 
 
 def resize_movie(movie, target_size, time_axis=2):
