@@ -3,12 +3,15 @@ Phase3 nda schema classes and methods
 """
 import numpy as np
 import datajoint as dj
-from pipeline import experiment,meso,fuse, stack, treadmill
-from stimline import tune
-pupil = dj.create_virtual_module('pupil',"pipeline_eye")
-import scanreader
-from pipeline.utils import performance
-from stimulus import stimulus
+
+# private BCM schemas
+# from pipeline import experiment,meso,fuse, stack, treadmill
+# from stimline import tune
+# pupil = dj.create_virtual_module('pupil',"pipeline_eye")
+# import scanreader
+# from pipeline.utils import performance
+# from stimulus import stimulus
+
 import imageio
 import io
 import math
@@ -21,9 +24,7 @@ import hashlib
 import json
 
 
-
-
-schema = dj.schema('21617_release_nda', create_tables=True)
+schema = dj.schema('21617_release_nda', create_tables=False)
 schema.spawn_missing_classes()
 
 params = {'ignore_extra_fields':True,'skip_duplicates':True}
