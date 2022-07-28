@@ -12,18 +12,23 @@ import datajoint as dj
 # from pipeline.utils import performance
 # from stimulus import stimulus
 
-import imageio
+# export specific packages
+# import imageio
+# import moviepy.editor as mpy
+
 import io
 import math
 from tqdm import tqdm
 from inhib.func import resize_movie,hamming_filter,get_timing_offset, make_movie
 from scipy.interpolate import interp1d
-import moviepy.editor as mpy
 import pandas as pd
 import hashlib
 import json
 
+# local BCM reference
+# schema = dj.schema('21617_release_nda', create_tables=False, create_schema=False)
 
+# export container reference
 schema = dj.schema('release_nda_db', create_tables=False, create_schema=False)
 schema.spawn_missing_classes()
 
