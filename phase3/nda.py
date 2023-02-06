@@ -13,11 +13,11 @@ from scipy.interpolate import interp1d
 
 import datajoint as dj
 
-# BCM specific export schemas
-from stimulus import stimulus
-from stimline import tune
-from pipeline import meso, experiment, stack
-m65p3 = dj.create_virtual_module('microns_minnie65_02','microns_minnie65_02')
+# # BCM specific export schemas
+# from stimulus import stimulus
+# from stimline import tune
+# from pipeline import meso, experiment, stack
+# m65p3 = dj.create_virtual_module('microns_minnie65_02','microns_minnie65_02')
 
 schema = dj.schema('microns_phase3_nda', create_tables=True)
 schema.spawn_missing_classes()
