@@ -7,10 +7,6 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
 
-# import coregister.solve as cs
-# from coregister.transform.transform import Transform
-# from coregister.utils import em_nm_to_voxels
-
 import datajoint as dj
 
 # # BCM specific export schemas
@@ -20,7 +16,7 @@ import datajoint as dj
 # m65p3 = dj.create_virtual_module('microns_minnie65_02','microns_minnie65_02')
 
 schema = dj.schema('microns_phase3_nda', create_tables=True)
-schema.spawn_missing_classes()
+# schema.spawn_missing_classes()
 
 params = {'ignore_extra_fields':True,'skip_duplicates':True}
 
