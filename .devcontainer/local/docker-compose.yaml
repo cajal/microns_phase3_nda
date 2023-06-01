@@ -1,0 +1,15 @@
+version: "3"
+services:
+  app:
+    cpus: 4
+    mem_limit: 15g
+    build:
+      context: ../..
+      dockerfile: ./.devcontainer/Dockerfile
+    image: datajoint/microns_devcontainer:latest
+    volumes:
+      - ../..:/workspaces/microns_phase3_nda:cached
+      - docker_data:/var/lib/docker # persist docker images
+    privileged: true # only because of dind
+volumes:
+  docker_data:
