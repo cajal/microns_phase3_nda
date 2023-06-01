@@ -85,7 +85,7 @@ def format_coords(coords_xyz, return_dim=1):
     assert np.logical_or(return_dim==1, return_dim==2), '"ndim" must be 1 or 2'
     assert np.logical_or(coords_xyz.ndim == 1, coords_xyz.ndim == 2), 'Coordinate(s) must be 1D or 2D'
     assert coords_xyz.shape[-1] == 3, 'Coordinate(s) must have exactly x, y, and z'
-    assert np.logical_or(coords_xyz.dtype==np.int, coords_xyz.dtype==np.float), 'Datatype must be int or float'
+    assert np.logical_or(coords_xyz.dtype==np.int64, coords_xyz.dtype==np.float64), 'Datatype must be int or float'
     
     coords_xyz = coords_xyz if coords_xyz.ndim == return_dim else np.expand_dims(coords_xyz, 0)
         
