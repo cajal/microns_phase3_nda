@@ -9,9 +9,8 @@
 	"onCreateCommand": "pip install -e . && pip install ipykernel",
 	"postStartCommand": "docker volume prune -f",
 	"hostRequirements": {
-		"cpus": 1,
-		"memory": "2gb",
-		"storage": "1gb"
+		"cpus": 2,
+		"memory": "4gb"
 	},
 	"customizations": {
 		"settings": {

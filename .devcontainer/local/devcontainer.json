@@ -10,8 +10,7 @@
 	"postStartCommand": "docker volume prune -f",
 	"hostRequirements": {
 		"cpus": 1,
-		"memory": "2gb",
-		"storage": "1gb"
+		"memory": "2gb"
 	},
 	"customizations": {
 		"settings": {
