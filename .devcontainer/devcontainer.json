@@ -6,7 +6,7 @@
 	"remoteEnv": {
 		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
 	},
-	"onCreateCommand": "pip install -e .",
+	"onCreateCommand": "pip install -e . && pip install ipykernel",
 	"postStartCommand": "docker volume prune -f",
 	"hostRequirements": {
 		"cpus": 1,
@@ -20,7 +20,8 @@
 		"vscode": {
 			"extensions": [
 				"ms-python.python",
-				"ms-toolsai.jupyter"
+				"ms-toolsai.jupyter",
+				"vivaxy.vscode-conventional-commits"
 			]
 		}
 	}
