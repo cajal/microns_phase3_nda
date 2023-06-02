@@ -13,10 +13,14 @@
 	},
 	"customizations": {
 		"vscode": {
+			"settings": {
+				"workbench.colorTheme": "One Dark Pro",
+				"jupyter.themeMatplotlibPlots": true
+			},
 			"extensions": [
 				"ms-python.python",
 				"ms-toolsai.jupyter",
-				"vivaxy.vscode-conventional-commits"
+				"zhuangtongfa.material-theme"
 			]
 		}
 	}
