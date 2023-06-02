@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM mcr.microsoft.com/devcontainers/python:3.9
 WORKDIR /workspaces
 RUN \
     # devcontainer dependencies
