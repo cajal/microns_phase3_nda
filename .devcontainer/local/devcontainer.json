@@ -8,8 +8,8 @@
 	},
 	"postStartCommand": "pip install -e .",
 	"hostRequirements": {
-		"cpus": 2,
-		"memory": "4gb"
+		"cpus": 4,
+		"memory": "15gb"
 	},
 	"customizations": {
 		"vscode": {
