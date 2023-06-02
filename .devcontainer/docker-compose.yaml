@@ -4,6 +4,4 @@ services:
     cpus: 4
     mem_limit: 8g
     image: datajoint/microns_devcontainer:latest
-    volumes:
-      - .:/workspaces/microns_phase3_nda:cached
     command: bash -c "while sleep 1000; do :; done"

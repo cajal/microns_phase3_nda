@@ -6,7 +6,7 @@
 	"remoteEnv": {
 		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
 	},
-	"postCreateCommand": "pip install -e .",
+	"initializeCommand": "docker system prune --all --force",
 	"hostRequirements": {
 		"cpus": 4,
 		"memory": "8gb"
