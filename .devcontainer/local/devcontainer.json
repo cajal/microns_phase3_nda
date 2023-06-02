@@ -6,7 +6,6 @@
 	"remoteEnv": {
 		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
 	},
-	"postCreateCommand": "pip install -e .",
 	"hostRequirements": {
 		"cpus": 2,
 		"memory": "4gb"
@@ -15,7 +14,7 @@
 		"vscode": {
 			"settings": {
 				"python.pythonPath": "/usr/local/bin/python",
-				"python.analysis.extraPaths": ["app", "another/path/etc"],
+				"python.analysis.ignore": ["notebooks"],
 				"workbench.colorTheme": "One Dark Pro",
 				"jupyter.themeMatplotlibPlots": true
 			},

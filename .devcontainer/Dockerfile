@@ -1,11 +1,14 @@
 FROM mcr.microsoft.com/devcontainers/python:3.9
+WORKDIR /workspaces
 RUN \
     # devcontainer dependencies
     apt-get update && \
     apt-get install -y git graphviz && \
     # MICrONS dependencies
     pip3 install git+https://github.com/AllenInstitute/em_coregistration.git@phase3 && \
-    pip3 install seaborn ipykernel
+    pip3 install seaborn ipykernel && \
+    git clone https://github.com/yambottle/microns_phase3_nda.git && \
+    pip install -e microns_phase3_nda
 
 ENV DJ_HOST tutorial-db.datajoint.io
 ENV DJ_USER microns
