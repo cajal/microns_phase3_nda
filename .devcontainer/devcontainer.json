@@ -14,6 +14,8 @@
 	"customizations": {
 		"vscode": {
 			"settings": {
+				"python.pythonPath": "/usr/local/bin/python",
+				"python.analysis.extraPaths": ["app", "another/path/etc"],
 				"workbench.colorTheme": "One Dark Pro",
 				"jupyter.themeMatplotlibPlots": true
 			},
