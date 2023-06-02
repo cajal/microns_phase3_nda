@@ -6,6 +6,7 @@
 	"remoteEnv": {
 		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
 	},
+	"postStartCommand": "pip install -e .",
 	"hostRequirements": {
 		"cpus": 2,
 		"memory": "4gb"
@@ -15,8 +16,7 @@
 			"settings": {
 				"python.pythonPath": "/usr/local/bin/python",
 				"python.analysis.ignore": ["notebooks"],
-				"workbench.colorTheme": "One Dark Pro",
-				"jupyter.themeMatplotlibPlots": true
+				"workbench.colorTheme": "One Dark Pro"
 			},
 			"extensions": [
 				"ms-python.python",

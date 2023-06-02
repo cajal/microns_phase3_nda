@@ -7,8 +7,7 @@ RUN \
     # MICrONS dependencies
     pip3 install git+https://github.com/AllenInstitute/em_coregistration.git@phase3 && \
     pip3 install seaborn ipykernel && \
-    git clone https://github.com/yambottle/microns_phase3_nda.git && \
-    pip install -e microns_phase3_nda
+    pip3 install git+https://github.com/yambottle/microns_phase3_nda.git
 
 ENV DJ_HOST tutorial-db.datajoint.io
 ENV DJ_USER microns

@@ -7,6 +7,7 @@
 		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
 	},
 	"initializeCommand": "docker system prune --all --force",
+	"postStartCommand": "pip install -e .",
 	"hostRequirements": {
 		"cpus": 4,
 		"memory": "8gb"
@@ -16,8 +17,7 @@
 			"settings": {
 				"python.pythonPath": "/usr/local/bin/python",
 				"python.analysis.ignore": ["notebooks"],
-				"workbench.colorTheme": "One Dark Pro",
-				"jupyter.themeMatplotlibPlots": true
+				"workbench.colorTheme": "One Dark Pro"
 			},
 			"extensions": [
 				"ms-python.python",
