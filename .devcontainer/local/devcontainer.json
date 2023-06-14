@@ -1,0 +1,28 @@
+{
+	"name": "Local DevContainer",
+	"dockerComposeFile": "docker-compose.yaml",
+	"service": "app",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+	"remoteEnv": {
+		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+	},
+	"postStartCommand": "pip install -e .",
+	"hostRequirements": {
+		"cpus": 4,
+		"memory": "15gb"
+	},
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"python.pythonPath": "/usr/local/bin/python",
+				"python.analysis.ignore": ["notebooks"],
+				"workbench.colorTheme": "One Dark Pro"
+			},
+			"extensions": [
+				"ms-python.python",
+				"ms-toolsai.jupyter",
+				"zhuangtongfa.material-theme"
+			]
+		}
+	}
+}
