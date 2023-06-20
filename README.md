@@ -1,6 +1,25 @@
 # microns_phase3_nda
 nda schema for MICrONS phase3. For more on the MICrONS project please see: [MICrONS Explorer](https://www.microns-explorer.org/)
 
+## Interactive Environment
+Here are some options that provide a great experience:
+
+- **Cloud-based IDE**: (*recommended*)
+  - Launch using [GitHub Codespaces](https://github.com/features/codespaces) using the `+` option which will `Create codespace on main` in the codebase repository on your fork with default options. For more control, see the `...` where you may create `New with options...`.
+  - Build time for a codespace is **~5m**. This is done infrequently and cached for convenience.
+  - Start time for a codespace is **~30s**. This will pull the built codespace from cache when you need it.
+  - *Tip*: Each month, GitHub renews a [free-tier](https://docs.github.com/en/billing/managing-billing-for-github-codespaces/about-billing-for-github-codespaces#monthly-included-storage-and-core-hours-for-personal-accounts) quota of compute and storage. Typically we run into the storage limits before anything else since Codespaces consume storage while stopped. It is best to delete Codespaces when not actively in use and recreate when needed. We'll soon be creating prebuilds to avoid larger build times. Once any portion of your quota is reached, you will need to wait for it to be reset at the end of your cycle or add billing info to your GitHub account to handle overages.
+  - *Tip*: GitHub auto names the codespace but you can rename the codespace so that it is easier to identify later.
+- **Local IDE**:
+  - Ensure you have [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+  - Ensure you have [Docker](https://docs.docker.com/get-docker/)
+  - Ensure you have [VSCode](https://code.visualstudio.com/)
+  - Install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+  - `git clone` the codebase repository and open it in VSCode
+  - Use the `Dev Containers extension` to `Reopen in Container` (More info in the `Getting started` included with the extension)
+
+You will know your environment has finished loading once you either see a terminal open related to `Running postStartCommand` with a final message: `Done` or the `README.md` is opened in `Preview`.
+
 ## Technical documentation
 Technical documentation on the functional data can be found [here](https://www.microns-explorer.org/cortical-mm3#f-data).
 
