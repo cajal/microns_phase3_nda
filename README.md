@@ -5,50 +5,19 @@ nda schema for MICrONS phase3. For more on the MICrONS project please see: [MICr
 Technical documentation on the functional data can be found [here](https://www.microns-explorer.org/cortical-mm3#f-data).
 
 ## Installation Instructions
-This package requires access to the functional data. To download the SQL database get started on the microns-nda-access repo [here](https://github.com/cajal/microns-nda-access).
+This package requires access to the functional data. To download the SQL database and the pre-built Docker access images start with the microns-nda-access repo [here](https://github.com/cajal/microns-nda-access).
 
-This package requires PyTorch. Windows users may need to install from the PyTorch website: [PyTorch installation](https://pytorch.org/get-started/locally/)
+Once your environment is properly configured run the tutorials below:
 
-This package requires the em_coregistration package from the Allen Institute:
+## Tutorials:
 
-```bash
-pip3 install git+https://github.com/AllenInstitute/em_coregistration.git@phase3
-```
+[Using DataJoint to Access Functional Data Tutorial](notebooks/Using_DataJoint_to_Access_Functional_Data.ipynb)
 
-Install this package:
-
-```bash
-pip3 install git+https://github.com/cajal/microns_phase3_nda.git
-```
-
-## Import Instructions
-
-Import datajoint. Configuration instructions: https://docs.datajoint.io/python/setup/01-Install-and-Connect.html
-
-```python
-import datajoint as dj
-```
-
-In a jupyter notebook:
-
-```python
-from phase3 import nda, func, utils
-```
-
-## Using the schema
-
-To view schema ERD:
-```python
-dj.ERD(nda)
-```
-
-![nda](images/nda_erd.png)
-
-## Tutorial: 
-
-[Using DataJoint to Access Functional Data Tutorial](notebooks/Using_DataJoint_to_Access_Functional_Data.ipynb) 
+[Matched Cell Functional Data Tutorial](notebooks/Matched_Cell_Functional_Data.ipynb)
 
 ## nda table descriptions
+
+![nda](images/nda_erd.png)
 
 **nda.Scan:** Information on completed scans. Cajal Pipeline: [meso.ScanInfo](https://github.com/cajal/pipeline/blob/6a8342bf3edb07f5653c61024742258295cd8014/python/pipeline/meso.py#L29)
 
@@ -64,7 +33,7 @@ dj.ERD(nda)
 
 **nda.Treadmill:** Treadmill velocities low-pass filtered with a hamming window to the scan frame rate then linearly interpolated to scan frame times.
 
-**nda.FrameTimes:** Timestamps of scan frames in seconds relative to the start of the scan for the first pixel of the first imaging field.
+**nda.ScanTimes:** Timestamps of scan frames in seconds relative to the start of the scan for the first pixel of the first imaging field.
 
 **nda.Stimulus:** For each scan, contains the movie aligned to activity traces in `nda.Activity`.
 
@@ -75,6 +44,10 @@ dj.ERD(nda)
 **nda.Monet2:** Detailed information for the Monet2 stimulus.
 
 **nda.Trippy:** Detailed information for the Trippy stimulus.
+
+**nda.RasterCorrection:**
+
+**nda.MotionCorrection:**
 
 **nda.MeanIntensity:** Mean intensity of imaging field over time. Cajal Pipeline: [meso.Quality.MeanIntensity](https://github.com/cajal/pipeline/blob/fa202ee43437a67d55719e8ae9769ee9937581d0/python/pipeline/meso.py#L173)
 
@@ -95,6 +68,8 @@ dj.ERD(nda)
 **nda.Activity:** Deconvolved spike trace from the fluorescence trace. Cajal Pipeline: [meso.Activity.Trace](https://github.com/cajal/pipeline/blob/921a920478c73687dd78b863fcd05e12bbf1e197/python/pipeline/meso.py#L1501)
 
 **nda.StackUnit:** Unit coordinates in stack reference frame after field registration. `stack_x, stack_y, stack_z` should be used for transformation to EM space using Coregistration. [meso.StackCoordinates.UnitInfo](https://github.com/cajal/pipeline/blob/921a920478c73687dd78b863fcd05e12bbf1e197/python/pipeline/meso.py#L1672)
+
+**nda.UnitHash:**
 
 **nda.AreaMembership:** Visual area labels for all units.
 
