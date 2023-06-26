@@ -119,8 +119,8 @@ def fetch_coreg(transform_id=None, transform_version=None, transform_direction=N
         
     try:
         transform_id, transform_version, transform_direction, transform_type, transform_solution = (nda.Coregistration & tid_restr & ver_restr & dir_restr & type_restr).fetch1('transform_id','version', 'direction', 'transform_type', 'transform_solution')
-    except Exception:
-        raise Exception('Specified parameters fail to restrict to a single transformation')
+    except dj.DataJointError:
+        raise ValueError('Specified parameters fail to restrict to a single transformation')
     
     # generate transformation object
     transform_obj = Transform(json=transform_solution)
