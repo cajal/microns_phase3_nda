@@ -11,9 +11,9 @@ Once your environment is properly configured run the tutorials below:
 
 ## Tutorials:
 
-[Using DataJoint to Access Functional Data Tutorial](notebooks/Using_DataJoint_to_Access_Functional_Data.ipynb)
+[Using DataJoint to Access Functional Data Tutorial](tutorial_notebooks/Using_DataJoint_to_Access_Functional_Data.ipynb)
 
-[Matched Cell Functional Data Tutorial](notebooks/Matched_Cell_Functional_Data.ipynb)
+[Matched Cell Functional Data Tutorial](tutorial_notebooks/Matched_Cell_Functional_Data.ipynb)
 
 ## nda table descriptions
 
