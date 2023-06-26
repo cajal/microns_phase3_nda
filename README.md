@@ -45,9 +45,9 @@ Once your environment is properly configured run the tutorials below:
 
 **nda.Trippy:** Detailed information for the Trippy stimulus.
 
-**nda.RasterCorrection:**
+**nda.RasterCorrection:** Raster phase correction applied to each scan field.
 
-**nda.MotionCorrection:**
+**nda.MotionCorrection:** Motion correction applied to each scan frame.
 
 **nda.MeanIntensity:** Mean intensity of imaging field over time. Cajal Pipeline: [meso.Quality.MeanIntensity](https://github.com/cajal/pipeline/blob/fa202ee43437a67d55719e8ae9769ee9937581d0/python/pipeline/meso.py#L173)
 
@@ -65,11 +65,11 @@ Once your environment is properly configured run the tutorials below:
 
 **nda.ScanUnit:** Unit_id assignment that is unique across the entire scan. Includes info about each unit. Cajal Pipeline: [meso.ScanSet.Unit / meso.ScanSet.UnitInfo](https://github.com/cajal/pipeline/blob/921a920478c73687dd78b863fcd05e12bbf1e197/python/pipeline/meso.py#L1341)
 
+**nda.UnitHash:** Assigns hash and semantic string to each unique session - scan\_idx - unit\_id triplet.\\
+
 **nda.Activity:** Deconvolved spike trace from the fluorescence trace. Cajal Pipeline: [meso.Activity.Trace](https://github.com/cajal/pipeline/blob/921a920478c73687dd78b863fcd05e12bbf1e197/python/pipeline/meso.py#L1501)
 
 **nda.StackUnit:** Unit coordinates in stack reference frame after field registration. `stack_x, stack_y, stack_z` should be used for transformation to EM space using Coregistration. [meso.StackCoordinates.UnitInfo](https://github.com/cajal/pipeline/blob/921a920478c73687dd78b863fcd05e12bbf1e197/python/pipeline/meso.py#L1672)
-
-**nda.UnitHash:**
 
 **nda.AreaMembership:** Visual area labels for all units.
 
