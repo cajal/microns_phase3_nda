@@ -5,12 +5,19 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 
+with open(path.join(here, 'microns_phase3', 'version.py')) as f:
+    exec(f.read())
+
+with open(path.join(here, 'requirements.txt')) as f:
+    requirements = f.read().split()
+
 setup(
-    name='phase3',
-    version='0.0.1',
+    name='microns-phase3',
+    version=__version__,
     description='Datajoint schemas and related methods for MICrONS phase3',
     author='Stelios Papadopoulos',
     author_email='spapadop@bcm.edu',
     packages=find_packages(exclude=[]),
-    install_requires=['numpy', 'tqdm', 'scipy', 'pandas', 'datajoint==0.12.9', 'pykdtree', 'ipyvolume', 'matplotlib', 'decorator', 'torch', 'tifffile', 'scikit-video', 'nglui', 'caveclient']
+    python_requires='>=3.8',
+    install_requires=requirements
 )
