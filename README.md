@@ -1,13 +1,25 @@
 # microns_phase3_nda
-nda schema for MICrONS phase3. For more on the MICrONS project please see: [MICrONS Explorer](https://www.microns-explorer.org/)
+This repository contains the Python functions and utilities required to interact with the functional data for the MICrONS project. The database containing this functional data is called `nda` (short for neural data access).
+
+For more on the MICrONS project please see: [MICrONS Explorer](https://www.microns-explorer.org/)
+
+The current version of this repository and database is v8 (Semantic version: 0.8.0).
 
 ## Technical documentation
-Technical documentation on the functional data can be found [here](https://www.microns-explorer.org/cortical-mm3#f-data).
+Technical documentation on the functional data can be found on the MICrONS project website [here](https://www.microns-explorer.org/cortical-mm3#f-data).
+
+Download the nda v8 database technical documentation, which includes a changelog from the v7 database [here](https://bossdb-open-data.s3.amazonaws.com/iarpa_microns/minnie/functional_data/two_photon_processed_data_and_metadata/database_v8/two_photon_processed_data_and_metadata_technical_documentation_v8.pdf).
+
+Separate from the data contained in the nda database, the MICrONS project website [here](https://www.microns-explorer.org/cortical-mm3#f-data) contains technical docs and access instructions for:
+
+1. Raster- and motion-corrected functional scan tiffs.
+2. Raster- and motion-corrected two-photon structural stack tiff
+3. Stitched and temporally aligned stimuli for each scan
 
 ## Installation Instructions
-This package requires access to the functional data. To download the SQL database and the pre-built Docker access images start with the microns-nda-access repo [here](https://github.com/cajal/microns-nda-access).
+This package requires access to the functional database. To download the SQL database and the pre-built Docker access images start with the `microns-nda-access` repo [here](https://github.com/cajal/microns-nda-access).
 
-Once your environment is properly configured run the tutorials below:
+Once inside your properly configured environment run the tutorials below:
 
 ## Tutorials:
 
