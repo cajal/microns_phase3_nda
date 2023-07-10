@@ -1,4 +1,5 @@
 # microns_phase3_nda
+
 This repository contains the Python functions and utilities required to interact with the functional data for the MICrONS project. The database containing this functional data is called `nda` (short for neural data access).
 
 For more on the MICrONS project please see: [MICrONS Explorer](https://www.microns-explorer.org/)
@@ -6,25 +7,33 @@ For more on the MICrONS project please see: [MICrONS Explorer](https://www.micro
 The current version of this repository and database is v8 (Semantic version: 0.8.0).
 
 ## Interactive Environment
+
 Here are some options that provide a great experience:
 
-- **Cloud-based IDE**: (*recommended*)
-  - Launch using [GitHub Codespaces](https://github.com/features/codespaces) using the `+` option which will `Create codespace on main` in the codebase repository on your fork with default options. For more control, see the `...` where you may create `New with options...`.
+- Cloud-based Environment (*recommended*)
+  - Fork this repository
+  - Launch using [GitHub Codespaces](https://github.com/features/codespaces) on your fork with the default options by selecting the green `Code` button and then the green `Create codespace on main` button. For more control, under the green `Code` button select the `...` button where you may create `New with options...`.
   - Build time for a codespace is **~5m**. This is done infrequently and cached for convenience.
   - Start time for a codespace is **~30s**. This will pull the built codespace from cache when you need it.
+  - You will know your environment has finished loading once the `pip install -e .` command has run and the terminal prompt is clear.
+  - We recommend you start by navigating to the `tutorial_notebooks` directory on the left panel and go through the `Using_DataJoint_to_Access_Functional_Data.ipynb` Jupyter notebook.
+  - Once you are done, we recommend selecting the `Codespaces` menu in the bottom-left corner and then the `Stop Current Codespace` option. By default, GitHub will automatically stop the Codespace after 30 minutes of inactivity.  Once the Codespace is no longer being used, we recommend deleting the Codespace.
   - *Tip*: Each month, GitHub renews a [free-tier](https://docs.github.com/en/billing/managing-billing-for-github-codespaces/about-billing-for-github-codespaces#monthly-included-storage-and-core-hours-for-personal-accounts) quota of compute and storage. Typically we run into the storage limits before anything else since Codespaces consume storage while stopped. It is best to delete Codespaces when not actively in use and recreate when needed. We'll soon be creating prebuilds to avoid larger build times. Once any portion of your quota is reached, you will need to wait for it to be reset at the end of your cycle or add billing info to your GitHub account to handle overages.
   - *Tip*: GitHub auto names the codespace but you can rename the codespace so that it is easier to identify later.
-- **Local IDE**:
-  - Ensure you have [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-  - Ensure you have [Docker](https://docs.docker.com/get-docker/)
-  - Ensure you have [VSCode](https://code.visualstudio.com/)
-  - Install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
-  - `git clone` the codebase repository and open it in VSCode
-  - Use the `Dev Containers extension` to `Reopen in Container` (More info in the `Getting started` included with the extension)
 
-You will know your environment has finished loading once you either see a terminal open related to `Running postStartCommand` with a final message: `Done` or the `README.md` is opened in `Preview`.
+- Local Environment
+  - Fork this repository
+  - Install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+  - Install [Docker](https://docs.docker.com/get-docker/)
+  - Install [VS Code](https://code.visualstudio.com/)
+  - Install the VSCode [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+  - `git clone` your fork of the repository and open it in VSCode
+  - Use the `Dev Containers extension` to `Reopen in Container` (More info in the `Getting started` included with the extension)
+  - We recommend you start by navigating to the `tutorial_notebooks` directory on the left panel and go through the `Using_DataJoint_to_Access_Functional_Data.ipynb` Jupyter notebook.
+  - Once you are done, you can stop the container by closing the `VS Code` window.
 
 ## Technical documentation
+
 Technical documentation on the functional data can be found on the MICrONS project website [here](https://www.microns-explorer.org/cortical-mm3#f-data).
 
 Download the nda v8 database technical documentation, which includes a changelog from the v7 database [here](https://bossdb-open-data.s3.amazonaws.com/iarpa_microns/minnie/functional_data/two_photon_processed_data_and_metadata/database_v8/two_photon_processed_data_and_metadata_technical_documentation_v8.pdf).
@@ -36,11 +45,12 @@ Separate from the data contained in the nda database, the MICrONS project websit
 3. Stitched and temporally aligned stimuli for each scan
 
 ## Installation Instructions
+
 This package requires access to the functional database. To download the SQL database and the pre-built Docker access images start with the `microns-nda-access` repo [here](https://github.com/cajal/microns-nda-access).
 
 Once inside your properly configured environment run the tutorials below:
 
-## Tutorials:
+## Tutorials
 
 [Using DataJoint to Access Functional Data Tutorial](tutorial_notebooks/Using_DataJoint_to_Access_Functional_Data.ipynb)
 
