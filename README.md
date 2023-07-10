@@ -26,7 +26,7 @@ Here are some options that provide a great experience:
   - Install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
   - Install [Docker](https://docs.docker.com/get-docker/)
   - Install [VS Code](https://code.visualstudio.com/)
-  - Install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+  - Install the VSCode [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
   - `git clone` your fork of the repository and open it in VSCode
   - Use the `Dev Containers extension` to `Reopen in Container` (More info in the `Getting started` included with the extension)
   - We recommend you start by navigating to the `tutorial_notebooks` directory on the left panel and go through the `Using_DataJoint_to_Access_Functional_Data.ipynb` Jupyter notebook.
