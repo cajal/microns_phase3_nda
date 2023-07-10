@@ -16,13 +16,11 @@
 		"vscode": {
 			"settings": {
 				"python.pythonPath": "/usr/local/bin/python",
-				"python.analysis.ignore": ["notebooks"],
-				"workbench.colorTheme": "One Dark Pro"
+				"python.analysis.ignore": ["notebooks"]
 			},
 			"extensions": [
 				"ms-python.python",
-				"ms-toolsai.jupyter",
-				"zhuangtongfa.material-theme"
+				"ms-toolsai.jupyter"
 			]
 		}
 	}
