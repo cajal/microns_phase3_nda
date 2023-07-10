@@ -11,7 +11,7 @@ The current version of this repository and database is v8 (Semantic version: 0.8
 Here are some options that provide a great experience:
 
 - Cloud-based Environment (*recommended*)
-  - Fork this repository, which will allow you to save your updates to the tutorials and codebase.
+  - Fork this repository
   - Launch using [GitHub Codespaces](https://github.com/features/codespaces) on your fork with the default options by selecting the green `Code` button and then the green `Create codespace on main` button. For more control, under the green `Code` button select the `...` button where you may create `New with options...`.
   - Build time for a codespace is **~5m**. This is done infrequently and cached for convenience.
   - Start time for a codespace is **~30s**. This will pull the built codespace from cache when you need it.
