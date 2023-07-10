@@ -25,12 +25,12 @@ Here are some options that provide a great experience:
   - Fork this repository
   - Install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
   - Install [Docker](https://docs.docker.com/get-docker/)
-  - Install [VSCode](https://code.visualstudio.com/)
+  - Install [VS Code](https://code.visualstudio.com/)
   - Install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
   - `git clone` your fork of the repository and open it in VSCode
   - Use the `Dev Containers extension` to `Reopen in Container` (More info in the `Getting started` included with the extension)
-  - You will know your environment has finished loading once the `pip install -e .` command has run and the terminal prompt is clear.
   - We recommend you start by navigating to the `tutorial_notebooks` directory on the left panel and go through the `Using_DataJoint_to_Access_Functional_Data.ipynb` Jupyter notebook.
+  - Once you are done, you can stop the container by closing the `VS Code` window.
 
 ## Technical documentation
 
